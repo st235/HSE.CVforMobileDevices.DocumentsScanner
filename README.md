@@ -1,0 +1,1 @@
+# HSE.CVforMobileDevices.DocumentsScanner
