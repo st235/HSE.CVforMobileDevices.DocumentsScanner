@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Document Scanner</string>
+
+    <string name="documents_feed_screen_pick_media">Pick media</string>
+</resources>
