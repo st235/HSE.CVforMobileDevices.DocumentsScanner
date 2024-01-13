@@ -7,7 +7,10 @@
 extern "C" {
 #endif
 
-JNIEXPORT jstring JNICALL Java_github_com_st235_documentscanner_utils_OpenCVHelper_helloWorld(JNIEnv*, jclass);
+JNIEXPORT void JNICALL Java_github_com_st235_documentscanner_utils_OpenCVHelper_helloWorld(
+        JNIEnv* env, jclass clazz,
+        jlong image, jfloatArray corners,
+        jlong out);
 
 #ifdef __cplusplus
 }

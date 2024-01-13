@@ -9,6 +9,5 @@ class DocumentScannerApplication: Application() {
     override fun onCreate() {
         super.onCreate()
         OpenCVHelper.load()
-        Log.d("HelloWorld", OpenCVHelper().helloWorld())
     }
 }

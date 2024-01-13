@@ -177,10 +177,21 @@ class CropViewDragController(
     var viewport by mutableStateOf(initialCroppingViewport)
         private set
 
-//    val imageViewport: CroppingViewport
-//        get() {
-//            return
-//        }
+    val imageViewport: CroppingViewport
+        get() {
+            val lt = viewport.leftTop
+            val lb = viewport.leftBottom
+            val rt = viewport.rightTop
+            val rb = viewport.rightBottom
+
+            val offset = Offset(imageBoundsWithinView.left, imageBoundsWithinView.top)
+            return viewport.copy(
+                leftTop = lt.minus(offset),
+                leftBottom = lb.minus(offset),
+                rightTop = rt.minus(offset),
+                rightBottom = rb.minus(offset),
+            ).toOriginalImageViewport(imageScaleFactor)
+        }
 
     private var viewBounds by mutableStateOf(IntSize.Zero)
 
@@ -348,6 +359,7 @@ fun CropView(
 
                         if (dragController.onDragging(point.x, point.y)) {
                             change.consume()
+                            onCornersChanged(dragController.imageViewport)
                         }
                     },
                     onDragEnd = {
