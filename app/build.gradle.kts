@@ -14,8 +14,30 @@ android {
         versionCode = 1
         versionName = "0.0.1"
 
+        ndk {
+            moduleName = "OpenCVDocumentScannerLib"
+        }
+
+        externalNativeBuild {
+            ndkBuild {
+                arguments.add("NDK_APPLICATION_MK:=src/main/cpp/Application.mk")
+            }
+        }
+
         vectorDrawables {
             useSupportLibrary = true
+        }
+    }
+
+    sourceSets.named("main") {
+        jniLibs {
+            srcDir("src/main/lib")
+        }
+    }
+
+    externalNativeBuild {
+        ndkBuild {
+            path = file("src/main/cpp/Android.mk")
         }
     }
 
