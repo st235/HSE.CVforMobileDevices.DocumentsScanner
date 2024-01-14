@@ -6,7 +6,7 @@
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 
-JNIEXPORT void JNICALL Java_github_com_st235_documentscanner_utils_OpenCVHelper_helloWorld(
+JNIEXPORT void JNICALL Java_github_com_st235_documentscanner_utils_OpenCVHelper_wrapPerspective(
         JNIEnv* env, jclass clazz,
         jlong image, jfloatArray jcorners,
         jlong out) {

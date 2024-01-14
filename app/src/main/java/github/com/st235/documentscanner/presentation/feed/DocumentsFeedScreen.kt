@@ -52,20 +52,20 @@ fun DocumentsFeedScreen(modifier: Modifier = Modifier) {
         }
     ) { innerPadding ->
         Column(modifier = modifier.padding(innerPadding)) {
-            val openCvHelper by remember { mutableStateOf(OpenCVHelper()) }
+//            val openCvHelper by remember { mutableStateOf(get<OpenCVHelper>()) }
             var croppingViewport by remember { mutableStateOf<CroppingViewport?>(null) }
             var croppedImage by remember { mutableStateOf<Bitmap?>(null) }
 
             if (croppedImage == null) {
                 Button(onClick = {
                     val vprt = croppingViewport!!
-                    croppedImage = openCvHelper.wrapPerspective(
-                        image = BitmapFactory.decodeResource(context.resources, R.drawable.document),
-                        topLeft = vprt.leftTop.asFloatArray(),
-                        topRight = vprt.rightTop.asFloatArray(),
-                        bottomLeft = vprt.leftBottom.asFloatArray(),
-                        bottomRight = vprt.rightBottom.asFloatArray(),
-                    )
+//                    croppedImage = openCvHelper.wrapPerspective(
+//                        image = BitmapFactory.decodeResource(context.resources, R.drawable.document),
+//                        topLeft = vprt.leftTop.asFloatArray(),
+//                        topRight = vprt.rightTop.asFloatArray(),
+//                        bottomLeft = vprt.leftBottom.asFloatArray(),
+//                        bottomRight = vprt.rightBottom.asFloatArray(),
+//                    )
                 }) {
                     Text("Crop")
                 }

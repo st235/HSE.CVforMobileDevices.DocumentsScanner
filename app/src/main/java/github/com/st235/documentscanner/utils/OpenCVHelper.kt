@@ -1,23 +1,22 @@
 package github.com.st235.documentscanner.utils
 
 import android.graphics.Bitmap
-import android.util.Log
 import org.opencv.android.Utils
 import org.opencv.core.Mat
 
 class OpenCVHelper {
 
-    companion object {
-        fun load() {
-            System.loadLibrary("OpenCVDocumentScannerLib")
-        }
+    init {
+        System.loadLibrary("OpenCVDocumentScannerLib")
     }
 
-    fun wrapPerspective(image: Bitmap,
-                        topLeft: FloatArray,
-                        topRight: FloatArray,
-                        bottomRight: FloatArray,
-                        bottomLeft: FloatArray,): Bitmap {
+    fun wrapPerspective(
+        image: Bitmap,
+        topLeft: FloatArray,
+        topRight: FloatArray,
+        bottomRight: FloatArray,
+        bottomLeft: FloatArray,
+    ): Bitmap {
         val matIn = Mat()
         Utils.bitmapToMat(image, matIn)
 
@@ -33,13 +32,12 @@ class OpenCVHelper {
         corners[7] = bottomLeft[1]
 
         val matOut = Mat()
-        helloWorld(matIn.nativeObj, corners, matOut.nativeObj)
+        wrapPerspective(matIn.nativeObj, corners, matOut.nativeObj)
 
         val out = Bitmap.createBitmap(matOut.cols(), matOut.rows(),Bitmap.Config.RGB_565);
         Utils.matToBitmap(matOut, out)
-        Log.d("HelloWorld", "Bitmap size: ${out.width} ${out.height}")
         return out
     }
 
-    external fun helloWorld(image: Long, corners: FloatArray, out: Long)
+    private external fun wrapPerspective(image: Long, corners: FloatArray, out: Long)
 }
