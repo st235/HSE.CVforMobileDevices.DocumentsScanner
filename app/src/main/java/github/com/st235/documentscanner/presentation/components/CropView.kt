@@ -1,7 +1,6 @@
 package github.com.st235.documentscanner.presentation.components
 
 import android.graphics.Bitmap
-import android.util.Log
 import androidx.annotation.Px
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -23,316 +22,21 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.minus
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
 
-/**
- * Returns image to canvas ratio.
- * To get new image sizes, one needs to divide the
- * real image dimension to this ratio.
- *
- * newWidth = imageWidth / scaleFactor
- * newHeight = imageHeight / scaleFactor
- */
-private fun calculateScaleToFitFactor(
-    imageWidth: Float, imageHeight: Float,
-    canvasWidth: Float, canvasHeight: Float
-): Float {
-    val factor = imageWidth / canvasWidth
-
-    if (imageHeight / factor <= canvasHeight) {
-        return factor
-    }
-
-    return imageHeight / canvasHeight
-}
-
-private fun dot(a: Offset, b: Offset): Float {
-    return a.x * b.x + a.y * b.y
-}
-
-// Compute barycentric coordinates (u, v, w) for
-// point p with respect to triangle (a, b, c)
-private fun toBarycentric(p: Offset, a: Offset, b: Offset, c: Offset): FloatArray {
-    val v0 = b.minus(a)
-    val v1 = c.minus(a)
-    val v2 = p.minus(a)
-
-    val d00 = dot(v0, v0)
-    val d01 = dot(v0, v1)
-    val d11 = dot(v1, v1)
-    val d20 = dot(v2, v0)
-    val d21 = dot(v2, v1)
-    val denominator = d00 * d11 - d01 * d01
-
-    val v = (d11 * d20 - d01 * d21) / denominator
-    val w = (d00 * d21 - d01 * d20) / denominator
-    val u = 1.0f - v - w
-
-    return floatArrayOf(u, w, v)
-}
-
-fun checkIfConvex(p: Offset, a: Offset, b: Offset, c: Offset): Boolean {
-    // Check whether ab and bc are collinear and makes degenerate triangle.
-    val ab = b.minus(a)
-    val bc = c.minus(b)
-
-    // Simplified cross-product of a 2d vector,
-    // AxB = (AyBz − AzBy, AzBx − AxBz, AxBy − AyBx).
-    if ((ab.x * bc.y - ab.y * bc.x) < 0.0001f) {
-        return false
-    }
-
-    val barycentric = toBarycentric(p, a, b, c)
-    val alpha = barycentric[0]
-    val beta = barycentric[1]
-    val gamma = barycentric[2]
-
-    return (alpha < 0 && beta > 0 && gamma > 0) ||
-        (alpha > 0 && beta < 0 && gamma > 0) ||
-        (alpha > 0 && beta > 0 && gamma < 0)
-}
-
-data class CroppingViewport(
-    val leftTop: Offset,
-    val leftBottom: Offset,
-    val rightTop: Offset,
-    val rightBottom: Offset,
-) {
-    companion object {
-        fun fromRawCoordinates(
-            ltx: Float, lty: Float,
-            lbx: Float, lby: Float,
-            rtx: Float, rty: Float,
-            rbx: Float, rby: Float
-        ): CroppingViewport {
-            return CroppingViewport(
-                leftTop = Offset(ltx, lty),
-                leftBottom = Offset(lbx, lby),
-                rightTop = Offset(rtx, rty),
-                rightBottom = Offset(rbx, rby),
-            )
-        }
-    }
-}
-
-private val CroppingViewport.left: Float
-    get() {
-        return min(leftTop.x, leftBottom.x)
-    }
-
-private val CroppingViewport.right: Float
-    get() {
-        return max(rightTop.x, rightBottom.x)
-    }
-
-private val CroppingViewport.top: Float
-    get() {
-        return min(leftTop.y, rightTop.y)
-    }
-
-private val CroppingViewport.bottom: Float
-    get() {
-        return max(leftBottom.y, rightBottom.y)
-    }
-
-private fun CroppingViewport.toCanvasViewport(scaleFactor: Float): CroppingViewport {
-    return CroppingViewport(
-        leftTop = leftTop.div(scaleFactor),
-        leftBottom = leftBottom.div(scaleFactor),
-        rightTop = rightTop.div(scaleFactor),
-        rightBottom = rightBottom.div(scaleFactor)
-    )
-}
-
-private fun CroppingViewport.toOriginalImageViewport(scaleFactor: Float): CroppingViewport {
-    return CroppingViewport(
-        leftTop = leftTop.times(scaleFactor),
-        leftBottom = leftBottom.times(scaleFactor),
-        rightTop = rightTop.times(scaleFactor),
-        rightBottom = rightBottom.times(scaleFactor)
-    )
-}
-
-class CropViewDragController(
-    initialCroppingViewport: CroppingViewport,
-    @Px private val cornerTouchRadius: Float,
-) {
-    private companion object {
-        fun squareDistance(x1: Float, y1: Float, x2: Float, y2: Float): Float {
-            return (x1 - x2).pow(2) + (y1 - y2).pow(2)
-        }
-    }
-
-    enum class CornerDraggingState {
-        IDLING,
-        DRAGGING_LEFT_TOP,
-        DRAGGING_LEFT_BOTTOM,
-        DRAGGING_RIGHT_TOP,
-        DRAGGING_RIGHT_BOTTOM,
-    }
-
-    var viewport by mutableStateOf(initialCroppingViewport)
-        private set
-
-    val imageViewport: CroppingViewport
-        get() {
-            val lt = viewport.leftTop
-            val lb = viewport.leftBottom
-            val rt = viewport.rightTop
-            val rb = viewport.rightBottom
-
-            val offset = Offset(imageBoundsWithinView.left, imageBoundsWithinView.top)
-            return viewport.copy(
-                leftTop = lt.minus(offset),
-                leftBottom = lb.minus(offset),
-                rightTop = rt.minus(offset),
-                rightBottom = rb.minus(offset),
-            ).toOriginalImageViewport(imageScaleFactor)
-        }
-
-    private var viewBounds by mutableStateOf(IntSize.Zero)
-
-    private var draggingCornerState by mutableStateOf(CornerDraggingState.IDLING)
-
-    private var imageBoundsWithinView = Rect.Zero
-
-    private var imageScaleFactor: Float = 1f
-
-    fun onViewBoundsChanged(newBounds: IntSize) {
-//        viewBounds = newBounds
-    }
-
-    fun onImageBoundsWithinViewChanged(
-        newBounds: Rect,
-        scaleFactor: Float
-    ) {
-        val lt = viewport.leftTop
-        val lb = viewport.leftBottom
-        val rt = viewport.rightTop
-        val rb = viewport.rightBottom
-
-        val oldOffset = Offset(imageBoundsWithinView.left, imageBoundsWithinView.top)
-        val offset = Offset(newBounds.left, newBounds.top)
-
-        viewport = viewport.copy(
-            leftTop = lt.minus(oldOffset).plus(offset),
-            leftBottom = lb.minus(oldOffset).plus(offset),
-            rightTop = rt.minus(oldOffset).plus(offset),
-            rightBottom = rb.minus(oldOffset).plus(offset),
-        )
-
-        imageBoundsWithinView = newBounds
-        imageScaleFactor = scaleFactor
-    }
-
-    fun onStartDragging(x: Float, y: Float): Boolean {
-        draggingCornerState = obtainDraggingState(x, y)
-        return draggingCornerState != CornerDraggingState.IDLING
-    }
-
-    fun onDragging(x: Float, y: Float): Boolean {
-        if (draggingCornerState == CornerDraggingState.IDLING) {
-            return false
-        }
-
-        val newViewport = when (draggingCornerState) {
-            CornerDraggingState.DRAGGING_LEFT_TOP -> viewport.copy(leftTop = dragLeftTopCornerTo(x, y))
-            CornerDraggingState.DRAGGING_LEFT_BOTTOM -> viewport.copy(leftBottom = dragLeftBottomCornerTo(x, y))
-            CornerDraggingState.DRAGGING_RIGHT_TOP -> viewport.copy(rightTop = dragRightTopCornerTo(x, y))
-            CornerDraggingState.DRAGGING_RIGHT_BOTTOM -> viewport.copy(rightBottom = dragRightBottomCornerTo(x, y))
-            CornerDraggingState.IDLING -> throw IllegalArgumentException("Cannot create new viewport as no dragging is happening")
-        }
-
-        if (!checkIfConvex(newViewport.leftTop, newViewport.leftBottom, newViewport.rightTop, newViewport.rightBottom)) {
-            return false
-        }
-
-        viewport = newViewport
-        return true
-    }
-
-    fun onStopDragging() {
-        draggingCornerState = CornerDraggingState.IDLING
-    }
-
-    private fun dragLeftTopCornerTo(x: Float, y: Float): Offset {
-        // Original image bounds.
-        var newX = max(imageBoundsWithinView.left, min(imageBoundsWithinView.right, x))
-        var newY = max(imageBoundsWithinView.top, min(imageBoundsWithinView.bottom, y))
-
-        newX = min(newX, viewport.right - cornerTouchRadius)
-        newY = min(newY, viewport.bottom - cornerTouchRadius)
-
-        return Offset(newX, newY)
-    }
-
-    private fun dragRightTopCornerTo(x: Float, y: Float): Offset {
-        // Original image bounds.
-        var newX = max(imageBoundsWithinView.left, min(imageBoundsWithinView.right, x))
-        var newY = max(imageBoundsWithinView.top, min(imageBoundsWithinView.bottom, y))
-
-        newX = max(newX, viewport.left + cornerTouchRadius)
-        newY = min(newY, viewport.bottom - cornerTouchRadius)
-
-        return Offset(newX, newY)
-    }
-
-    private fun dragLeftBottomCornerTo(x: Float, y: Float): Offset {
-        // Original image bounds.
-        var newX = max(imageBoundsWithinView.left, min(imageBoundsWithinView.right, x))
-        var newY = max(imageBoundsWithinView.top, min(imageBoundsWithinView.bottom, y))
-
-        newX = min(newX, viewport.right - cornerTouchRadius)
-        newY = max(newY, viewport.top + cornerTouchRadius)
-
-        return Offset(newX, newY)
-    }
-
-    private fun dragRightBottomCornerTo(x: Float, y: Float): Offset {
-        // Original image bounds.
-        var newX = max(imageBoundsWithinView.left, min(imageBoundsWithinView.right, x))
-        var newY = max(imageBoundsWithinView.top, min(imageBoundsWithinView.bottom, y))
-
-        newX = max(newX, viewport.left + cornerTouchRadius)
-        newY = max(newY, viewport.top + cornerTouchRadius)
-
-        return Offset(newX, newY)
-    }
-
-    private fun obtainDraggingState(x: Float, y: Float): CornerDraggingState {
-        val lt = viewport.leftTop
-        val lb = viewport.leftBottom
-        val rt = viewport.rightTop
-        val rb = viewport.rightBottom
-
-        return when {
-            lt.withinTouchRadius(x, y) -> CornerDraggingState.DRAGGING_LEFT_TOP
-            lb.withinTouchRadius(x, y) -> CornerDraggingState.DRAGGING_LEFT_BOTTOM
-            rt.withinTouchRadius(x, y) -> CornerDraggingState.DRAGGING_RIGHT_TOP
-            rb.withinTouchRadius(x, y) -> CornerDraggingState.DRAGGING_RIGHT_BOTTOM
-            else -> CornerDraggingState.IDLING
-        }
-    }
-
-    private fun Offset.withinTouchRadius(x: Float, y: Float): Boolean {
-        val squareDistance = squareDistance(this.x, this.y, x, y)
-        return squareDistance <= cornerTouchRadius.pow(2)
-    }
-}
-
 @Composable
 fun CropView(
     image: Bitmap,
-    croppingViewport: CroppingViewport,
     modifier: Modifier = Modifier,
+    imageCroppedArea: CropArea = CropArea.EMPTY,
     overlayColor: Color = Color(0x882e2e2e),
     cornerColor: Color = Color.White,
     cornerRadius: Dp = 8f.dp,
     cornerTouchRadius: Dp = 32f.dp,
-    onCornersChanged: (CroppingViewport) -> Unit = {}
+    onCropAreaChanged: (CropArea) -> Unit = {}
 ) {
     val cornerRadiusPx = with(LocalDensity.current) { cornerRadius.toPx() }
     val cornerTouchRadiusPx = with(LocalDensity.current) { cornerTouchRadius.toPx() }
@@ -340,7 +44,7 @@ fun CropView(
     val dragController by remember {
         mutableStateOf(
             CropViewDragController(
-                croppingViewport,
+                imageCroppedArea,
                 cornerTouchRadiusPx,
             )
         )
@@ -359,7 +63,7 @@ fun CropView(
 
                         if (dragController.onDragging(point.x, point.y)) {
                             change.consume()
-                            onCornersChanged(dragController.imageViewport)
+                            onCropAreaChanged(dragController.imageCropArea)
                         }
                     },
                     onDragEnd = {
@@ -405,7 +109,7 @@ fun CropView(
             )
         )
 
-        val viewport = dragController.viewport
+        val viewport = dragController.canvasCropArea
 
         val path = Path().apply {
             // CW add view bounds.
@@ -416,11 +120,11 @@ fun CropView(
             relativeLineTo(0f, -canvasHeight)
 
             // CCW add crop area bounds.
-            moveTo(viewport.leftTop.x, viewport.leftTop.y)
-            lineTo(viewport.leftBottom.x, viewport.leftBottom.y)
-            lineTo(viewport.rightBottom.x, viewport.rightBottom.y)
-            lineTo(viewport.rightTop.x, viewport.rightTop.y)
-            lineTo(viewport.leftTop.x, viewport.leftTop.y)
+            moveTo(viewport.topLeft.x, viewport.topLeft.y)
+            lineTo(viewport.bottomLeft.x, viewport.bottomLeft.y)
+            lineTo(viewport.bottomRight.x, viewport.bottomRight.y)
+            lineTo(viewport.topRight.x, viewport.topRight.y)
+            lineTo(viewport.topLeft.x, viewport.topLeft.y)
         }
 
         drawPath(
@@ -431,25 +135,257 @@ fun CropView(
         drawCircle(
             color = cornerColor,
             radius = cornerRadiusPx,
-            center = Offset(viewport.leftTop.x, viewport.leftTop.y),
+            center = Offset(viewport.topLeft.x, viewport.topLeft.y),
         )
 
         drawCircle(
             color = cornerColor,
             radius = cornerRadiusPx,
-            center = Offset(viewport.leftBottom.x, viewport.leftBottom.y),
+            center = Offset(viewport.bottomLeft.x, viewport.bottomLeft.y),
         )
 
         drawCircle(
             color = cornerColor,
             radius = cornerRadiusPx,
-            center = Offset(viewport.rightBottom.x, viewport.rightBottom.y),
+            center = Offset(viewport.bottomRight.x, viewport.bottomRight.y),
         )
 
         drawCircle(
             color = cornerColor,
             radius = cornerRadiusPx,
-            center = Offset(viewport.rightTop.x, viewport.rightTop.y),
+            center = Offset(viewport.topRight.x, viewport.topRight.y),
         )
     }
+}
+
+/**
+ * Returns image to canvas ratio.
+ * To get new image sizes, one needs to divide the
+ * real image dimension to this ratio.
+ *
+ * newWidth = imageWidth / scaleFactor
+ * newHeight = imageHeight / scaleFactor
+ */
+private fun calculateScaleToFitFactor(
+    imageWidth: Float, imageHeight: Float,
+    canvasWidth: Float, canvasHeight: Float
+): Float {
+    val factor = imageWidth / canvasWidth
+
+    if (imageHeight / factor <= canvasHeight) {
+        return factor
+    }
+
+    return imageHeight / canvasHeight
+}
+
+data class CropArea(
+    val topLeft: Offset,
+    val bottomLeft: Offset,
+    val topRight: Offset,
+    val bottomRight: Offset,
+) {
+    companion object {
+        val EMPTY = CropArea(
+            topLeft = Offset.Zero,
+            bottomLeft = Offset.Zero,
+            topRight = Offset.Zero,
+            bottomRight = Offset.Zero,
+        )
+    }
+}
+
+private fun CropArea.toCanvasCoordinates(scaleFactor: Float): CropArea {
+    return CropArea(
+        topLeft = topLeft.div(scaleFactor),
+        bottomLeft = bottomLeft.div(scaleFactor),
+        topRight = topRight.div(scaleFactor),
+        bottomRight = bottomRight.div(scaleFactor)
+    )
+}
+
+private fun CropArea.toImageCoordinates(scaleFactor: Float): CropArea {
+    return CropArea(
+        topLeft = topLeft.times(scaleFactor),
+        bottomLeft = bottomLeft.times(scaleFactor),
+        topRight = topRight.times(scaleFactor),
+        bottomRight = bottomRight.times(scaleFactor)
+    )
+}
+
+class CropViewDragController(
+    initialImageArea: CropArea,
+    @Px private val cornerTouchRadius: Float,
+) {
+    private companion object {
+        fun squareDistance(x1: Float, y1: Float, x2: Float, y2: Float): Float {
+            return (x1 - x2).pow(2) + (y1 - y2).pow(2)
+        }
+    }
+
+    enum class CornerDraggingState {
+        IDLING,
+        DRAGGING_TOP_LEFT,
+        DRAGGING_BOTTOM_LEFT,
+        DRAGGING_TOP_RIGHT,
+        DRAGGING_BOTTOM_RIGHT,
+    }
+
+    private var draggingCornerState by mutableStateOf(CornerDraggingState.IDLING)
+
+    private var imageBoundsWithinView = Rect.Zero
+
+    private var imageScaleFactor: Float = 1f
+
+    var imageCropArea by mutableStateOf(initialImageArea)
+        private set
+
+    val canvasCropArea: CropArea
+        get() {
+            val canvasCropArea = imageCropArea.toCanvasCoordinates(imageScaleFactor)
+            return CropArea(
+                topLeft = canvasCropArea.topLeft.plus(imageBoundsWithinView.topLeft),
+                topRight = canvasCropArea.topRight.plus(imageBoundsWithinView.topLeft),
+                bottomRight = canvasCropArea.bottomRight.plus(imageBoundsWithinView.topLeft),
+                bottomLeft = canvasCropArea.bottomLeft.plus(imageBoundsWithinView.topLeft),
+            )
+        }
+
+    private var viewBounds by mutableStateOf(IntSize.Zero)
+
+    fun onViewBoundsChanged(newBounds: IntSize) {
+//        viewBounds = newBounds
+    }
+
+    fun onImageBoundsWithinViewChanged(
+        newBounds: Rect,
+        scaleFactor: Float
+    ) {
+        imageBoundsWithinView = newBounds
+        imageScaleFactor = scaleFactor
+    }
+
+    fun onStartDragging(x: Float, y: Float): Boolean {
+        draggingCornerState = obtainDraggingState(x, y)
+        return draggingCornerState != CornerDraggingState.IDLING
+    }
+
+    fun onDragging(x: Float, y: Float): Boolean {
+        if (draggingCornerState == CornerDraggingState.IDLING) {
+            return false
+        }
+
+        val newCanvasCropArea = when (draggingCornerState) {
+            CornerDraggingState.DRAGGING_TOP_LEFT -> canvasCropArea.copy(topLeft = dragPoint(x, y))
+            CornerDraggingState.DRAGGING_TOP_RIGHT -> canvasCropArea.copy(topRight = dragPoint(x, y))
+            CornerDraggingState.DRAGGING_BOTTOM_LEFT -> canvasCropArea.copy(bottomLeft = dragPoint(x, y))
+            CornerDraggingState.DRAGGING_BOTTOM_RIGHT -> canvasCropArea.copy(bottomRight = dragPoint(x, y))
+            CornerDraggingState.IDLING -> throw IllegalArgumentException("Cannot create new viewport as no dragging is happening")
+        }
+
+        val checkIfCroppingAreaIsAConvexHull = checkIfBarycentricCoordinatesValid(
+            p = newCanvasCropArea.topLeft,
+            a = newCanvasCropArea.bottomRight, b = newCanvasCropArea.topRight, c = newCanvasCropArea.bottomLeft
+        ) { a, b, c ->
+            a < 0 && b > 0 && c > 0
+        }
+
+        if (checkIfCroppingAreaIsAConvexHull) {
+            imageCropArea = CropArea(
+                topLeft = newCanvasCropArea.topLeft.minus(imageBoundsWithinView.topLeft),
+                topRight = newCanvasCropArea.topRight.minus(imageBoundsWithinView.topLeft),
+                bottomRight = newCanvasCropArea.bottomRight.minus(imageBoundsWithinView.topLeft),
+                bottomLeft = newCanvasCropArea.bottomLeft.minus(imageBoundsWithinView.topLeft),
+            ).toImageCoordinates(imageScaleFactor)
+        }
+        return true
+    }
+
+    fun onStopDragging() {
+        draggingCornerState = CornerDraggingState.IDLING
+    }
+
+    private fun dragPoint(x: Float, y: Float): Offset {
+        // Original image bounds.
+        val newX = max(imageBoundsWithinView.left, min(imageBoundsWithinView.right, x))
+        val newY = max(imageBoundsWithinView.top, min(imageBoundsWithinView.bottom, y))
+        return Offset(newX, newY)
+    }
+
+    private fun obtainDraggingState(x: Float, y: Float): CornerDraggingState {
+        val cropArea = canvasCropArea
+        val lt = cropArea.topLeft
+        val lb = cropArea.bottomLeft
+        val rt = cropArea.topRight
+        val rb = cropArea.bottomRight
+
+        return when {
+            lt.withinTouchRadius(x, y) -> CornerDraggingState.DRAGGING_TOP_LEFT
+            lb.withinTouchRadius(x, y) -> CornerDraggingState.DRAGGING_BOTTOM_LEFT
+            rt.withinTouchRadius(x, y) -> CornerDraggingState.DRAGGING_TOP_RIGHT
+            rb.withinTouchRadius(x, y) -> CornerDraggingState.DRAGGING_BOTTOM_RIGHT
+            else -> CornerDraggingState.IDLING
+        }
+    }
+
+    private fun Offset.withinTouchRadius(x: Float, y: Float): Boolean {
+        val squareDistance = squareDistance(this.x, this.y, x, y)
+        return squareDistance <= cornerTouchRadius.pow(2)
+    }
+}
+
+private inline fun checkIfBarycentricCoordinatesValid(
+    p: Offset,
+    a: Offset, b: Offset, c: Offset,
+    predicate: (a: Float, b: Float, c: Float) -> Boolean
+): Boolean {
+    // Check whether ab and bc are collinear and makes degenerate triangle.
+    val ab = b.minus(a)
+    val bc = c.minus(b)
+
+    // Simplified cross-product of a 2d vector,
+    // AxB = (AyBz − AzBy, AzBx − AxBz, AxBy − AyBx).
+    if (abs(ab.x * bc.y - ab.y * bc.x) < 0.0001f) {
+        return false
+    }
+
+    val barycentric = toBarycentric(p, a, b, c)
+    val alpha = barycentric[0]
+    val beta = barycentric[1]
+    val gamma = barycentric[2]
+
+    return predicate(alpha, beta, gamma)
+}
+
+/**
+ * Calculates dot-product of a vector denoted by two points A and B.
+ */
+private fun dot(a: Offset, b: Offset): Float {
+    return a.x * b.x + a.y * b.y
+}
+
+/**
+ * Computes barycentric coordinates (a, b, c) for
+ * point p with respect to triangle ABC.
+ *
+ * <p> A, B, and C are points of the triangle ABC
+ * in the counterclockwise direction.
+ */
+private fun toBarycentric(p: Offset, a: Offset, b: Offset, c: Offset): FloatArray {
+    val v0 = b.minus(a)
+    val v1 = c.minus(a)
+    val v2 = p.minus(a)
+
+    val d00 = dot(v0, v0)
+    val d01 = dot(v0, v1)
+    val d11 = dot(v1, v1)
+    val d20 = dot(v2, v0)
+    val d21 = dot(v2, v1)
+    val denominator = d00 * d11 - d01 * d01
+
+    val v = (d11 * d20 - d01 * d21) / denominator
+    val w = (d00 * d21 - d01 * d20) / denominator
+    val u = 1.0f - v - w
+
+    return floatArrayOf(u, v, w)
 }
