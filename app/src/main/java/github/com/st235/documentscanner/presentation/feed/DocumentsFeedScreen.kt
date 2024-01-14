@@ -2,7 +2,6 @@ package github.com.st235.documentscanner.presentation.feed
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.PointF
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -31,7 +30,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import github.com.st235.documentscanner.R
 import github.com.st235.documentscanner.presentation.components.CropView
-import github.com.st235.documentscanner.presentation.components.CroppingViewport
+import github.com.st235.documentscanner.presentation.components.CropArea
 import github.com.st235.documentscanner.utils.OpenCVHelper
 
 @Composable
@@ -52,34 +51,36 @@ fun DocumentsFeedScreen(modifier: Modifier = Modifier) {
         }
     ) { innerPadding ->
         Column(modifier = modifier.padding(innerPadding)) {
-//            val openCvHelper by remember { mutableStateOf(get<OpenCVHelper>()) }
-            var croppingViewport by remember { mutableStateOf<CroppingViewport?>(null) }
+            val openCvHelper by remember { mutableStateOf(OpenCVHelper()) }
+            val image by remember {
+                mutableStateOf(BitmapFactory.decodeResource(context.resources, R.drawable.document))
+            }
+            var cropArea by remember { mutableStateOf<CropArea?>(null) }
             var croppedImage by remember { mutableStateOf<Bitmap?>(null) }
 
             if (croppedImage == null) {
                 Button(onClick = {
-                    val vprt = croppingViewport!!
-//                    croppedImage = openCvHelper.wrapPerspective(
-//                        image = BitmapFactory.decodeResource(context.resources, R.drawable.document),
-//                        topLeft = vprt.leftTop.asFloatArray(),
-//                        topRight = vprt.rightTop.asFloatArray(),
-//                        bottomLeft = vprt.leftBottom.asFloatArray(),
-//                        bottomRight = vprt.rightBottom.asFloatArray(),
-//                    )
+                    val vprt = cropArea!!
+                    croppedImage = openCvHelper.wrapPerspective(
+                        image = image,
+                        OpenCVHelper.Corners(
+                            topLeft = vprt.topLeft.asFloatArray(),
+                            topRight = vprt.topRight.asFloatArray(),
+                            bottomLeft = vprt.bottomLeft.asFloatArray(),
+                            bottomRight = vprt.bottomRight.asFloatArray(),
+                        )
+                    )
                 }) {
                     Text("Crop")
                 }
+                val foundCorners = openCvHelper.findCorners(image)
+                cropArea = foundCorners.asCroppingViewport()
+
                 CropView(
-                    image = BitmapFactory.decodeResource(context.resources, R.drawable.document),
-                    croppingViewport = CroppingViewport(
-                        leftTop = Offset(50f, 50f),
-                        leftBottom = Offset(50f, 150f),
-                        rightTop = Offset(250f, 50f),
-                        rightBottom = Offset(170f, 250f),
-                    ),
-                    onCornersChanged = { viewport ->
-                        Log.d("HelloWorld", "image cropping viewport: $viewport")
-                        croppingViewport = viewport
+                    image = image,
+                    imageCroppedArea = foundCorners.asCroppingViewport(),
+                    onCropAreaChanged = { viewport ->
+                        cropArea = viewport
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -91,6 +92,24 @@ fun DocumentsFeedScreen(modifier: Modifier = Modifier) {
         }
 
 
+    }
+}
+
+fun OpenCVHelper.Corners?.asCroppingViewport(): CropArea {
+    return if (this == null) {
+        CropArea(
+            topLeft = Offset(50f, 50f),
+            bottomLeft = Offset(50f, 150f),
+            topRight = Offset(250f, 50f),
+            bottomRight = Offset(170f, 250f),
+        )
+    } else {
+        CropArea(
+            topLeft = Offset(topLeft[0], topLeft[1]),
+            bottomLeft = Offset(bottomLeft[0], bottomLeft[1]),
+            topRight = Offset(topRight[0], topRight[1]),
+            bottomRight = Offset(bottomRight[0], bottomRight[1]),
+        )
     }
 }
 

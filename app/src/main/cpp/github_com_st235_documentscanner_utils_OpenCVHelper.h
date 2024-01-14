@@ -12,6 +12,9 @@ JNIEXPORT void JNICALL Java_github_com_st235_documentscanner_utils_OpenCVHelper_
         jlong image, jfloatArray corners,
         jlong out);
 
+JNIEXPORT jfloatArray JNICALL Java_github_com_st235_documentscanner_utils_OpenCVHelper_findCorners(
+        JNIEnv* env, jclass clazz, jlong image);
+
 #ifdef __cplusplus
 }
 #endif
