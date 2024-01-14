@@ -2,8 +2,8 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
-#opencv
-OPENCV_ROOT := /Users/alexanderdadukin/Documents/SDKs/opencv-4.9.0
+# OpenCV is located in dependencies directory.
+OPENCV_ROOT := $(LOCAL_PATH)/../../../../dependencies/opencv
 
 OPENCV_CAMERA_MODULES := on
 OPENCV_INSTALL_MODULES := on

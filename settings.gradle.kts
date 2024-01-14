@@ -21,4 +21,4 @@ include(":app", ":opencv")
 // Add OpenCV 4.9.0 Android SDK,
 // the release is available at:
 // https://github.com/opencv/opencv/releases/tag/4.9.0.
-project(":opencv").projectDir = File("/Users/alexanderdadukin/Documents/SDKs/opencv-4.9.0/sdk")
+project(":opencv").projectDir = File(rootProject.projectDir, "dependencies/opencv/sdk")
