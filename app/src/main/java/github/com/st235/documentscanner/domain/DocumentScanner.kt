@@ -1,4 +1,4 @@
-package github.com.st235.documentscanner.utils
+package github.com.st235.documentscanner.domain
 
 import android.graphics.Bitmap
 import android.util.Log
@@ -6,11 +6,7 @@ import org.opencv.android.Utils
 import org.opencv.core.Mat
 import java.util.Arrays
 
-class OpenCVHelper {
-
-    init {
-        System.loadLibrary("OpenCVDocumentScannerLib")
-    }
+class DocumentScanner {
 
     data class Corners(
         val topLeft: FloatArray,
@@ -39,13 +35,23 @@ class OpenCVHelper {
         }
     }
 
+    private val nativePointer: Long
+
+    init {
+        NativeInitializer.assertNativeIsInitialised()
+
+        nativePointer = init()
+    }
+
+    fun deinit() {
+        deinit(nativePointer)
+    }
+
     fun findCorners(image: Bitmap): Corners? {
         val matIn = Mat()
         Utils.bitmapToMat(image, matIn)
 
-        val rawCorners = findCorners(matIn.nativeObj) ?: return null
-
-        Log.d("HelloWorld", "rawCorners: ${Arrays.toString(rawCorners)}")
+        val rawCorners = findCorners(nativePointer, matIn.nativeObj) ?: return null
 
         return Corners(
             topLeft = floatArrayOf(rawCorners[0], rawCorners[1]),
@@ -74,13 +80,15 @@ class OpenCVHelper {
         rawCorners[7] = corners.bottomLeft[1]
 
         val matOut = Mat()
-        wrapPerspective(matIn.nativeObj, rawCorners, matOut.nativeObj)
+        wrapPerspective(nativePointer, matIn.nativeObj, rawCorners, matOut.nativeObj)
 
         val out = Bitmap.createBitmap(matOut.cols(), matOut.rows(),Bitmap.Config.RGB_565)
         Utils.matToBitmap(matOut, out)
         return out
     }
 
-    private external fun wrapPerspective(image: Long, corners: FloatArray, out: Long)
-    private external fun findCorners(image: Long): FloatArray?
+    private external fun init(): Long
+    private external fun deinit(nativePointer: Long)
+    private external fun wrapPerspective(nativePointer: Long, image: Long, corners: FloatArray, out: Long)
+    private external fun findCorners(nativePointer: Long, image: Long): FloatArray?
 }

@@ -11,7 +11,9 @@ OPENCV_LIB_TYPE := SHARED
 
 include ${OPENCV_ROOT}/sdk/native/jni/OpenCV.mk
 
-LOCAL_SRC_FILES := github_com_st235_documentscanner_utils_OpenCVHelper.cpp
+LOCAL_SRC_FILES := \
+    scanner/DocumentScanner.cpp \
+    github_com_st235_documentscanner_domain_DocumentScanner.cpp
 LOCAL_CFLAGS += -mfloat-abi=softfp -mfpu=neon -std=c++11
 LOCAL_ARM_NEON  := true
 LOCAL_LDLIBS += -llog

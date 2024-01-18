@@ -1,5 +1,10 @@
 <resources>
     <string name="app_name">Document Scanner</string>
 
-    <string name="documents_feed_screen_pick_media">Pick media</string>
+    <string name="feed_screen_start_flow">Scan new document</string>
+
+    <string name="document_composer_screen_pick_media">Pick media</string>
+    <string name="document_composer_screen_open_camera">Take a picture</string>
+
+    <string name="document_cropper_crop_button">Crop</string>
 </resources>

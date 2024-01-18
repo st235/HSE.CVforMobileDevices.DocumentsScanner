@@ -1,31 +1,15 @@
-#include "github_com_st235_documentscanner_utils_OpenCVHelper.h"
+#include "DocumentScanner.h"
 
 #include <cstdint>
 #include <math.h>
 #include <vector>
-#include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 
-JNIEXPORT void JNICALL Java_github_com_st235_documentscanner_utils_OpenCVHelper_wrapPerspective(
-        JNIEnv* env, jclass clazz,
-        jlong image, jfloatArray jcorners,
-        jlong out) {
-    const auto cornersLength = static_cast<int32_t>(env->GetArrayLength(jcorners));
+namespace scanner {
 
-    if (cornersLength != 8) {
-        return;
-    }
-
-    cv::Mat& matrixIn = *reinterpret_cast<cv::Mat*>(image);
-    cv::Mat& matrixOut = *reinterpret_cast<cv::Mat*>(out);
-
-    float corners[8];
-    auto* rawCorners = env->GetFloatArrayElements(jcorners, nullptr);
-    for (int i = 0; i < 8; i++) {
-        corners[i] = static_cast<float>(rawCorners[i]);
-    }
-    env->ReleaseFloatArrayElements(jcorners,  rawCorners, 0);
-
+void DocumentScanner::wrapPerspective(const cv::Mat& image,
+                                      float corners[8],
+                                      cv::Mat& outImage) const {
     float ltx = corners[0];
     float lty = corners[1];
     float rtx = corners[2];
@@ -45,9 +29,9 @@ JNIEXPORT void JNICALL Java_github_com_st235_documentscanner_utils_OpenCVHelper_
     source_corners.push_back(cv::Point2f(lbx, lby));
 
     float width = std::max(sqrtf(pow(rtx - ltx, 2) + pow(rty - lty, 2)),
-                      sqrtf(pow(rbx - lbx, 2) + pow(rby - lby, 2)));
+                           sqrtf(pow(rbx - lbx, 2) + pow(rby - lby, 2)));
     float height = std::max(sqrtf(pow(rtx - rbx, 2) + pow(rty - rby, 2)),
-                       sqrtf(pow(ltx - lbx, 2) + pow(lty - lby, 2)));
+                            sqrtf(pow(ltx - lbx, 2) + pow(lty - lby, 2)));
 
     destination_corners.push_back(cv::Point2f(0, 0));
     destination_corners.push_back(cv::Point2f(width, 0));
@@ -57,18 +41,16 @@ JNIEXPORT void JNICALL Java_github_com_st235_documentscanner_utils_OpenCVHelper_
     cv::Mat M = cv::getPerspectiveTransform(source_corners, destination_corners);
 
     cv::Size warped_image_size = cv::Size(cvRound(width), cvRound(height));
-    cv::warpPerspective(matrixIn, matrixOut, M, warped_image_size);
+    cv::warpPerspective(image, outImage, M, warped_image_size);
 }
 
-JNIEXPORT jfloatArray JNICALL Java_github_com_st235_documentscanner_utils_OpenCVHelper_findCorners(
-        JNIEnv* env, jclass clazz, jlong image) {
-    cv::Mat& matrixIn = *reinterpret_cast<cv::Mat*>(image);
-
+bool DocumentScanner::findCorners(const cv::Mat& image,
+                                  float corners[8]) const {
     const auto& kernel =
             cv::getStructuringElement(cv::MORPH_RECT, cv::Size(5, 5));
 
     cv::Mat tempImage;
-    cv::morphologyEx(matrixIn, tempImage, cv::MORPH_CLOSE, kernel,  /* anchor= */ cv::Point(-1, -1),  /* iterations= */ 3);
+    cv::morphologyEx(image, tempImage, cv::MORPH_CLOSE, kernel,  /* anchor= */ cv::Point(-1, -1),  /* iterations= */ 3);
 
 //    cv::Mat mask = cv::Mat::zeros(tempImage.rows, tempImage.cols, CV_8UC1);
 //    cv::Mat bgModel = cv::Mat::zeros(1, 65, CV_64FC1);
@@ -86,7 +68,7 @@ JNIEXPORT jfloatArray JNICALL Java_github_com_st235_documentscanner_utils_OpenCV
 
     cv::cvtColor(tempImage2, tempImage2, cv::COLOR_RGB2GRAY);
     cv::blur(tempImage2, tempImage2, cv::Size(11,11));
-    cv::Canny(tempImage2, tempImage2, 0, 100, /* kernel size= */ 3);
+    cv::Canny(tempImage2, tempImage2, 100, 220, /* kernel size= */ 5);
     cv::morphologyEx(tempImage2, tempImage2, cv::MORPH_DILATE, kernel);
 
     std::vector<std::vector<cv::Point>> contours;
@@ -111,7 +93,7 @@ JNIEXPORT jfloatArray JNICALL Java_github_com_st235_documentscanner_utils_OpenCV
     }
 
     if (approxCurve.size() != 4) {
-        return nullptr;
+        return false;
     }
 
     std::sort(approxCurve.begin(), approxCurve.end(), [](const cv::Point& one, const cv::Point& another) {
@@ -131,21 +113,15 @@ JNIEXPORT jfloatArray JNICALL Java_github_com_st235_documentscanner_utils_OpenCV
         bottomRightIndex = 2;
     }
 
-    jfloat array[8];
-    array[0] = static_cast<jfloat>(approxCurve[topLeftIndex].x);
-    array[1] = static_cast<jfloat>(approxCurve[topLeftIndex].y);
-    array[2] = static_cast<jfloat>(approxCurve[topRightIndex].x);
-    array[3] = static_cast<jfloat>(approxCurve[topRightIndex].y);
-    array[4] = static_cast<jfloat>(approxCurve[bottomRightIndex].x);
-    array[5] = static_cast<jfloat>(approxCurve[bottomRightIndex].y);
-    array[6] = static_cast<jfloat>(approxCurve[bottomLeftIndex].x);
-    array[7] = static_cast<jfloat>(approxCurve[bottomLeftIndex].y);
-
-    jfloatArray result = env->NewFloatArray(8);
-    if (!result) {
-        return nullptr;
-    }
-
-    env->SetFloatArrayRegion(result, 0, 8, array);
-    return result;
+    corners[0] = approxCurve[topLeftIndex].x;
+    corners[1] = approxCurve[topLeftIndex].y;
+    corners[2] = approxCurve[topRightIndex].x;
+    corners[3] = approxCurve[topRightIndex].y;
+    corners[4] = approxCurve[bottomRightIndex].x;
+    corners[5] = approxCurve[bottomRightIndex].y;
+    corners[6] = approxCurve[bottomLeftIndex].x;
+    corners[7] = approxCurve[bottomLeftIndex].y;
+    return true;
 }
+
+} // namespace scanner

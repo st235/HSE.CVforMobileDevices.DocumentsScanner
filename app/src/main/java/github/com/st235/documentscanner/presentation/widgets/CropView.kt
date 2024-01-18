@@ -1,9 +1,11 @@
-package github.com.st235.documentscanner.presentation.components
+package github.com.st235.documentscanner.presentation.widgets
 
 import android.graphics.Bitmap
 import androidx.annotation.Px
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.excludeFromSystemGesture
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.systemGestureExclusion
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -52,6 +54,7 @@ fun CropView(
 
     Canvas(
         modifier = modifier
+            .systemGestureExclusion()
             .onSizeChanged { dragController.onViewBoundsChanged(it) }
             .pointerInput(Unit) {
                 detectDragGestures(
