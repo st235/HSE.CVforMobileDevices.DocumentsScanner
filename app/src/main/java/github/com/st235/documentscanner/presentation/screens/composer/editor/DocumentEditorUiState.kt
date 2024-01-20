@@ -4,14 +4,18 @@ import android.graphics.Bitmap
 
 data class DocumentEditorUiState(
     val isLoading: Boolean,
+    val isFinished: Boolean,
     val documentId: Int,
-    val documentBitmap: Bitmap?
+    val previousDocument: Bitmap?,
+    val currentDocument: Bitmap?
 ) {
     companion object {
         val EMPTY = DocumentEditorUiState(
             isLoading = true,
+            isFinished = false,
             documentId = 0,
-            documentBitmap = null
+            previousDocument = null,
+            currentDocument = null
         )
     }
 }

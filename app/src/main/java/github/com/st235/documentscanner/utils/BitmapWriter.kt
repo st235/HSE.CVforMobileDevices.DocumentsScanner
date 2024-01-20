@@ -11,4 +11,8 @@ class BitmapWriter(
         val imageOut = contentResolver.openOutputStream(uri)
         imageOut?.use { bitmap.compress(Bitmap.CompressFormat.JPEG, 100, it) }
     }
+
+    fun delete(uri: Uri) {
+        contentResolver.delete(uri, null, null)
+    }
 }

@@ -9,4 +9,8 @@
     <string name="document_cropper_crop_button">Crop</string>
 
     <string name="documents_overview_page_placeholder">Page %d</string>
+
+    <string name="document_editor_save">Save</string>
+    <string name="document_editor_rotate_90_cw">Rotate 90 Clockwise</string>
+    <string name="document_editor_binarisation">Binarise</string>
 </resources>

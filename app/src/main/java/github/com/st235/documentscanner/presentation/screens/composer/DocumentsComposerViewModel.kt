@@ -1,14 +1,16 @@
 package github.com.st235.documentscanner.presentation.screens.composer
 
+import android.graphics.Bitmap
 import android.net.Uri
-import androidx.lifecycle.viewModelScope
 import github.com.st235.documentscanner.domain.CropInteractor
 import github.com.st235.documentscanner.domain.DocumentsCompositionInteractor
+import github.com.st235.documentscanner.domain.EditorInteractor
 import github.com.st235.documentscanner.utils.documents.DocumentScanner
 import github.com.st235.documentscanner.presentation.base.BaseViewModel
 import github.com.st235.documentscanner.presentation.screens.composer.cropper.DocumentCropperUiState
 import github.com.st235.documentscanner.presentation.screens.composer.editor.DocumentEditorUiState
 import github.com.st235.documentscanner.presentation.screens.composer.overview.DocumentsCompositionOverviewUiState
+import github.com.st235.documentscanner.utils.documents.ImageProcessor
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -16,7 +18,8 @@ import kotlinx.coroutines.launch
 
 class DocumentsComposerViewModel(
     private val cropInteractor: CropInteractor,
-    private val documentsCompositionInteractor: DocumentsCompositionInteractor
+    private val documentsCompositionInteractor: DocumentsCompositionInteractor,
+    private val editorInteractor: EditorInteractor,
 ): BaseViewModel() {
 
     private val _documentCropperState = MutableStateFlow(
@@ -90,10 +93,72 @@ class DocumentsComposerViewModel(
             _documentEditorUiState.update {
                 DocumentEditorUiState(
                     isLoading = false,
+                    isFinished = false,
                     documentId = documentId,
-                    documentBitmap = documentBitmap
+                    previousDocument = null,
+                    currentDocument = documentBitmap
                 )
             }
+        }
+    }
+
+    fun rotate90Clockwise(document: Bitmap?) {
+        applyEditingOperation(document) {
+            editorInteractor.rotate90Clockwise(it)
+        }
+    }
+
+    fun binarise(document: Bitmap?, mode: ImageProcessor.Binarization) {
+        applyEditingOperation(document) {
+            editorInteractor.binarise(it, mode)
+        }
+    }
+
+    private fun applyEditingOperation(document: Bitmap?, operation: (oldBitmap: Bitmap) -> Bitmap) {
+        if (document == null) {
+            return
+        }
+
+        val documentId = _documentEditorUiState.value.documentId
+        _documentEditorUiState.value = _documentEditorUiState.value.copy(isLoading = true)
+
+        backgroundScope.launch {
+            val newDocument = operation(document)
+
+            _documentEditorUiState.update {
+                DocumentEditorUiState(
+                    isLoading = false,
+                    isFinished = false,
+                    documentId = documentId,
+                    previousDocument = document,
+                    currentDocument = newDocument,
+                )
+            }
+        }
+    }
+
+    fun modifyDocument(documentId: Int, document: Bitmap?) {
+        if (document == null) {
+            return
+        }
+
+        _documentEditorUiState.value = _documentEditorUiState.value.copy(isLoading = true)
+
+        backgroundScope.launch {
+            documentsCompositionInteractor.updatePage(documentId, document)
+
+            val availablePages = documentsCompositionInteractor.getAllPages()
+
+            _documentCompositionOverviewState.update {
+                DocumentsCompositionOverviewUiState(
+                    pages = availablePages
+                )
+            }
+
+            _documentEditorUiState.value = _documentEditorUiState.value.copy(
+                isLoading = false,
+                isFinished = true
+            )
         }
     }
 

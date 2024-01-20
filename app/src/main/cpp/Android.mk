@@ -13,7 +13,9 @@ include ${OPENCV_ROOT}/sdk/native/jni/OpenCV.mk
 
 LOCAL_SRC_FILES := \
     scanner/DocumentScanner.cpp \
-    github_com_st235_documentscanner_utils_documents_DocumentScanner.cpp
+    processor/ImageProcessor.cpp \
+    github_com_st235_documentscanner_utils_documents_DocumentScanner.cpp \
+    github_com_st235_documentscanner_utils_documents_ImageProcessor.cpp
 LOCAL_CFLAGS += -mfloat-abi=softfp -mfpu=neon -std=c++11
 LOCAL_ARM_NEON  := true
 LOCAL_LDLIBS += -llog

@@ -48,4 +48,15 @@ class DocumentsCompositionInteractor(
         documentId += 1
     }
 
+    @Synchronized
+    fun updatePage(documentId: Int, bitmap: Bitmap) {
+        val oldUri = getDocumentPageById(documentId).uri
+        val tempUri = tempUriProvider.createRandomUri()
+
+        bitmapWriter.delete(oldUri)
+        bitmapWriter.save(tempUri, bitmap)
+
+        documentPages[documentId] = DocumentPage(documentId, tempUri)
+    }
+
 }
