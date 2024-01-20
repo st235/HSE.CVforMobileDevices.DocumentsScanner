@@ -7,4 +7,6 @@
     <string name="document_composer_screen_open_camera">Take a picture</string>
 
     <string name="document_cropper_crop_button">Crop</string>
+
+    <string name="documents_overview_page_placeholder">Page %d</string>
 </resources>

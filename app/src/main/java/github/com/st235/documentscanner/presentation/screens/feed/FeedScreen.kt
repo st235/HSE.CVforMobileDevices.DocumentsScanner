@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavHostController
-import github.com.st235.documentscanner.presentation.utils.createTempUri
+import github.com.st235.documentscanner.utils.createTempUri
 
 @Composable
 fun FeedScreen(

@@ -1,4 +1,4 @@
-package github.com.st235.documentscanner.presentation.utils
+package github.com.st235.documentscanner.utils
 
 import android.content.ContentResolver
 import android.content.Context
@@ -12,8 +12,8 @@ import java.io.FileNotFoundException
 import java.io.IOException
 
 
-class UriLoader(
-    context: Context
+class LocalUriLoader(
+    private val contentResolver: ContentResolver
 ) {
 
     private companion object {
@@ -42,8 +42,6 @@ class UriLoader(
         }
     }
 
-    private val contentResolver: ContentResolver = context.contentResolver
-
     fun load(uri: Uri): Bitmap? {
         try {
             val options = BitmapFactory.Options()
@@ -57,7 +55,8 @@ class UriLoader(
 
             options.inSampleSize = calculateInSampleSize(options,
                 maxWidth = MAX_DIMENSION,
-                maxHeight = MAX_DIMENSION)
+                maxHeight = MAX_DIMENSION
+            )
 
             options.inJustDecodeBounds = false
             val bitmap = BitmapFactory.decodeStream(inputStream, null, options)

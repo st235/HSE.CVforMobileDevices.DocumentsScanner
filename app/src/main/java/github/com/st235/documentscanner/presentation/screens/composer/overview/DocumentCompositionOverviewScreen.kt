@@ -1,14 +1,22 @@
-package github.com.st235.documentscanner.presentation.screens.composer
+package github.com.st235.documentscanner.presentation.screens.composer.overview
 
 import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -27,24 +35,30 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import github.com.st235.documentscanner.R
-import github.com.st235.documentscanner.presentation.screens.cropper.launchDocumentCropperScreen
-import github.com.st235.documentscanner.presentation.utils.createTempUri
+import github.com.st235.documentscanner.presentation.screens.Screen
+import github.com.st235.documentscanner.presentation.screens.composer.DocumentsComposerViewModel
+import github.com.st235.documentscanner.presentation.widgets.DocumentPreview
+import github.com.st235.documentscanner.utils.createTempUri
 
 @Composable
-fun DocumentsComposerScreen(
+fun DocumentCompositionOverviewScreen(
+    sharedViewModel: DocumentsComposerViewModel,
     navController: NavHostController,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
+    val state by sharedViewModel.documentsCompositionOverviewUiState.collectAsStateWithLifecycle()
 
     var cameraPermissionUri by remember { mutableStateOf(Uri.EMPTY) }
 
     val cameraLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { isSuccessful ->
             if (isSuccessful) {
-                launchDocumentCropperScreen(navController,  cameraPermissionUri)
+                sharedViewModel.prepareUriForCropping(cameraPermissionUri)
+                navController.navigate(Screen.DocumentComposer.Cropper.route)
             }
         }
 
@@ -59,7 +73,8 @@ fun DocumentsComposerScreen(
     val galleryLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
             if (uri != null) {
-                launchDocumentCropperScreen(navController,  uri)
+                sharedViewModel.prepareUriForCropping(uri)
+                navController.navigate(Screen.DocumentComposer.Cropper.route)
             }
         }
 
@@ -104,7 +119,28 @@ fun DocumentsComposerScreen(
             }
         }
     ) { paddings ->
-        Text("HelloWorld")
+        LazyVerticalStaggeredGrid(
+            columns = StaggeredGridCells.Fixed(2),
+            modifier = Modifier
+                .padding(paddings)
+                .fillMaxSize(),
+            contentPadding = PaddingValues(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalItemSpacing = 16.dp
+        ) {
+            items(state.pages) { page ->
+                DocumentPreview(
+                    document = page.uri,
+                    title = stringResource(
+                        id = R.string.documents_overview_page_placeholder,
+                        page.id
+                    ),
+                    onClick = {
+                        navController.navigate(Screen.DocumentComposer.Editor.create(page.id))
+                    }
+                )
+            }
+        }
     }
 }
 

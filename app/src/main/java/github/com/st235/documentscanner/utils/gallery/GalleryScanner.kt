@@ -1,4 +1,4 @@
-package github.com.st235.documentscanner.presentation.utils
+package github.com.st235.documentscanner.utils.gallery
 
 import android.content.ContentResolver
 import android.content.ContentUris

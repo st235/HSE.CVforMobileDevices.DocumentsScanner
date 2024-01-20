@@ -1,23 +1,23 @@
-#include "github_com_st235_documentscanner_domain_DocumentScanner.h"
+#include "github_com_st235_documentscanner_utils_documents_DocumentScanner.h"
 
 #include <opencv2/core.hpp>
 
 #include "scanner/DocumentScanner.h"
 
-JNIEXPORT jlong JNICALL Java_github_com_st235_documentscanner_domain_DocumentScanner_init(
+JNIEXPORT jlong JNICALL Java_github_com_st235_documentscanner_utils_documents_DocumentScanner_init(
         JNIEnv* env, jclass clazz) {
     const auto* scanner = new scanner::DocumentScanner();
     return reinterpret_cast<jlong>(scanner);
 }
 
-JNIEXPORT void JNICALL Java_github_com_st235_documentscanner_domain_DocumentScanner_deinit(
+JNIEXPORT void JNICALL Java_github_com_st235_documentscanner_utils_documents_DocumentScanner_deinit(
         JNIEnv* env, jclass clazz,
         jlong scannerPointer) {
     const auto* scanner = reinterpret_cast<scanner::DocumentScanner*>(scannerPointer);
     delete scanner;
 }
 
-JNIEXPORT void JNICALL Java_github_com_st235_documentscanner_domain_DocumentScanner_wrapPerspective(
+JNIEXPORT void JNICALL Java_github_com_st235_documentscanner_utils_documents_DocumentScanner_wrapPerspective(
         JNIEnv* env, jclass clazz,
         jlong scannerPointer,
         jlong image, jfloatArray jcorners,
@@ -42,7 +42,7 @@ JNIEXPORT void JNICALL Java_github_com_st235_documentscanner_domain_DocumentScan
     scanner.wrapPerspective(matrixIn, corners, matrixOut);
 }
 
-JNIEXPORT jfloatArray JNICALL Java_github_com_st235_documentscanner_domain_DocumentScanner_findCorners(
+JNIEXPORT jfloatArray JNICALL Java_github_com_st235_documentscanner_utils_documents_DocumentScanner_findCorners(
         JNIEnv* env, jclass clazz,
         jlong scannerPointer,
         jlong image) {

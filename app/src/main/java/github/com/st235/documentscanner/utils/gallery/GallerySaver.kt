@@ -1,4 +1,4 @@
-package github.com.st235.documentscanner.presentation.utils
+package github.com.st235.documentscanner.utils.gallery
 
 import android.content.ContentResolver
 import android.content.ContentValues
@@ -35,24 +35,24 @@ class GallerySaver(
             values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis())
         }
 
-        var url: Uri? = null
+        var uri: Uri? = null
 
         try {
-            url = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+            uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
                 ?: return null
-            val imageOut = contentResolver.openOutputStream(url)
+            val imageOut = contentResolver.openOutputStream(uri)
             imageOut?.use { imageOut ->
                 source.compress(Bitmap.CompressFormat.JPEG, 100, imageOut)
             }
         } catch (e: Exception) {
-            if (url != null) {
-                contentResolver.delete(url, null, null)
-                url = null
+            if (uri != null) {
+                contentResolver.delete(uri, null, null)
+                uri = null
             }
         }
 
-        if (url != null) {
-            return url
+        if (uri != null) {
+            return uri
         }
 
         return null

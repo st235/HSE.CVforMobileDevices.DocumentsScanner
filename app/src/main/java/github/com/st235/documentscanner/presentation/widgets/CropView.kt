@@ -3,10 +3,10 @@ package github.com.st235.documentscanner.presentation.widgets
 import android.graphics.Bitmap
 import androidx.annotation.Px
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.excludeFromSystemGesture
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.systemGestureExclusion
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,7 +22,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import kotlin.math.abs
 import kotlin.math.max
@@ -33,7 +32,7 @@ import kotlin.math.pow
 fun CropView(
     image: Bitmap,
     modifier: Modifier = Modifier,
-    imageCroppedArea: CropArea = CropArea.EMPTY,
+    imageCroppedArea: CropArea = CropArea.ALL,
     overlayColor: Color = Color(0x882e2e2e),
     cornerColor: Color = Color.White,
     cornerRadius: Dp = 8f.dp,
@@ -43,19 +42,26 @@ fun CropView(
     val cornerRadiusPx = with(LocalDensity.current) { cornerRadius.toPx() }
     val cornerTouchRadiusPx = with(LocalDensity.current) { cornerTouchRadius.toPx() }
 
-    val dragController by remember {
-        mutableStateOf(
-            CropViewDragController(
-                imageCroppedArea,
-                cornerTouchRadiusPx,
-            )
-        )
+    val dragController by remember { mutableStateOf(CropViewDragController()) }
+
+    LaunchedEffect(true) {
+        onCropAreaChanged(imageCroppedArea)
     }
+
+    dragController.imageCropArea = if (imageCroppedArea == CropArea.ALL) {
+        CropArea(
+            topLeft = Offset(0f, 0f),
+            topRight = Offset(image.width.toFloat(), 0f),
+            bottomRight = Offset(image.width.toFloat(), image.height.toFloat()),
+            bottomLeft = Offset(0f, image.height.toFloat()),
+        )
+    } else {
+        imageCroppedArea
+    }
+    dragController.cornerTouchRadius = cornerTouchRadiusPx
 
     Canvas(
         modifier = modifier
-            .systemGestureExclusion()
-            .onSizeChanged { dragController.onViewBoundsChanged(it) }
             .pointerInput(Unit) {
                 detectDragGestures(
                     onDragStart = { point ->
@@ -189,7 +195,7 @@ data class CropArea(
     val bottomRight: Offset,
 ) {
     companion object {
-        val EMPTY = CropArea(
+        val ALL = CropArea(
             topLeft = Offset.Zero,
             bottomLeft = Offset.Zero,
             topRight = Offset.Zero,
@@ -216,10 +222,7 @@ private fun CropArea.toImageCoordinates(scaleFactor: Float): CropArea {
     )
 }
 
-class CropViewDragController(
-    initialImageArea: CropArea,
-    @Px private val cornerTouchRadius: Float,
-) {
+class CropViewDragController {
     private companion object {
         fun squareDistance(x1: Float, y1: Float, x2: Float, y2: Float): Float {
             return (x1 - x2).pow(2) + (y1 - y2).pow(2)
@@ -240,8 +243,9 @@ class CropViewDragController(
 
     private var imageScaleFactor: Float = 1f
 
-    var imageCropArea by mutableStateOf(initialImageArea)
-        private set
+    var imageCropArea by mutableStateOf(CropArea.ALL)
+
+    @Px var cornerTouchRadius: Float = 0F
 
     val canvasCropArea: CropArea
         get() {
@@ -253,12 +257,6 @@ class CropViewDragController(
                 bottomLeft = canvasCropArea.bottomLeft.plus(imageBoundsWithinView.topLeft),
             )
         }
-
-    private var viewBounds by mutableStateOf(IntSize.Zero)
-
-    fun onViewBoundsChanged(newBounds: IntSize) {
-//        viewBounds = newBounds
-    }
 
     fun onImageBoundsWithinViewChanged(
         newBounds: Rect,

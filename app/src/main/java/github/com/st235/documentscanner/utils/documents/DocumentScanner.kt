@@ -1,10 +1,8 @@
-package github.com.st235.documentscanner.domain
+package github.com.st235.documentscanner.utils.documents
 
 import android.graphics.Bitmap
-import android.util.Log
 import org.opencv.android.Utils
 import org.opencv.core.Mat
-import java.util.Arrays
 
 class DocumentScanner {
 

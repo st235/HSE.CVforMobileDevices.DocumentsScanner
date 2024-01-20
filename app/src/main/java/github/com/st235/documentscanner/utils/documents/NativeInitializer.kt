@@ -1,4 +1,4 @@
-package github.com.st235.documentscanner.domain
+package github.com.st235.documentscanner.utils.documents
 
 object NativeInitializer {
 
