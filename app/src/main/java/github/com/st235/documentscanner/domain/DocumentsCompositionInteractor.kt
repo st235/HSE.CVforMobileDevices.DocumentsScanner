@@ -3,11 +3,15 @@ package github.com.st235.documentscanner.domain
 import android.graphics.Bitmap
 import android.net.Uri
 import github.com.st235.documentscanner.utils.BitmapWriter
+import github.com.st235.documentscanner.utils.DocumentsNameGenerator
 import github.com.st235.documentscanner.utils.LocalUriLoader
 import github.com.st235.documentscanner.utils.TempUriProvider
+import github.com.st235.documentscanner.utils.documents.ImageStitcher
 import github.com.st235.documentscanner.utils.gallery.GallerySaver
 
 class DocumentsCompositionInteractor(
+    private val nameGenerator: DocumentsNameGenerator,
+    private val imageStitcher: ImageStitcher,
     private val uriLoader: LocalUriLoader,
     private val tempUriProvider: TempUriProvider,
     private val bitmapWriter: BitmapWriter,
@@ -37,6 +41,11 @@ class DocumentsCompositionInteractor(
         return ArrayList(documentPages.values)
     }
 
+    private fun loadAllPages(): Array<Bitmap> {
+        val pages = getAllPages()
+        return pages.mapNotNull { uriLoader.load(it.uri) }.toTypedArray()
+    }
+
     @Synchronized
     fun addPage(bitmap: Bitmap) {
         val tempId = documentId
@@ -57,6 +66,26 @@ class DocumentsCompositionInteractor(
         bitmapWriter.save(tempUri, bitmap)
 
         documentPages[documentId] = DocumentPage(documentId, tempUri)
+    }
+
+    fun save() {
+        val documentsBitmaps = loadAllPages()
+
+        if (documentsBitmaps.isEmpty()) {
+            throw IllegalStateException("Documents list is empty")
+        }
+
+        val finalDocument = if (documentsBitmaps.size > 1) {
+            imageStitcher.stitch(documentsBitmaps)
+        } else {
+            documentsBitmaps[0]
+        }
+
+        gallerySaver.save(
+            title = nameGenerator.generateName(),
+            album = "Document Scans",
+            source = finalDocument
+        )
     }
 
 }

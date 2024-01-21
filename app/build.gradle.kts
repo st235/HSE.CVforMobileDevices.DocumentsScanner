@@ -94,4 +94,6 @@ dependencies {
     implementation("io.insert-koin:koin-core:3.5.3")
     implementation("io.insert-koin:koin-android:3.5.3")
     implementation("io.insert-koin:koin-androidx-compose:3.5.3")
+
+    implementation("com.github.st235:flow-layout-compose:1.2.2")
 }

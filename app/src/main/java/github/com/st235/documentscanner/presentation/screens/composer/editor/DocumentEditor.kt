@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -41,6 +42,8 @@ import androidx.navigation.NavHostController
 import github.com.st235.documentscanner.R
 import github.com.st235.documentscanner.presentation.screens.composer.DocumentsComposerViewModel
 import github.com.st235.documentscanner.utils.documents.ImageProcessor
+import st235.com.github.flowlayout.compose.FlowLayout
+import st235.com.github.flowlayout.compose.FlowLayoutDirection
 
 @Composable
 fun DocumentEditor(
@@ -68,7 +71,7 @@ fun DocumentEditor(
             ExtendedFloatingActionButton(
                 icon = {
                     Icon(
-                        painterResource(R.drawable.ic_save_24),
+                        painterResource(R.drawable.ic_healing_24),
                         contentDescription = null
                     )
                 },
@@ -141,13 +144,32 @@ fun BinarisationControlRow(
 ) {
     val scrollState = rememberScrollState()
 
-    Row(
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        modifier = modifier.fillMaxWidth().scrollable(scrollState, Orientation.Horizontal)
+    FlowLayout(
+        direction = FlowLayoutDirection.START,
     ) {
-        Text(text = "global", modifier = Modifier.focusable().clickable { onClick(ImageProcessor.Binarization.GLOBAL) })
+        Text(text = "global", modifier = Modifier
+            .focusable()
+            .clickable { onClick(ImageProcessor.Binarization.GLOBAL) })
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(text = "otsu", modifier = Modifier
+            .focusable()
+            .clickable { onClick(ImageProcessor.Binarization.OTSU) })
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(text = "triangle", modifier = Modifier
+            .focusable()
+            .clickable { onClick(ImageProcessor.Binarization.TRIANGLE) })
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(text = "adaptive gaussian", modifier = Modifier
+            .focusable()
+            .clickable { onClick(ImageProcessor.Binarization.ADAPTIVE_GAUSSIAN) })
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(text = "adaptive mean", modifier = Modifier
+            .focusable()
+            .clickable { onClick(ImageProcessor.Binarization.ADAPTIVE_MEAN) })
     }
 }
+
+
 
 @Composable
 fun ControlButton(

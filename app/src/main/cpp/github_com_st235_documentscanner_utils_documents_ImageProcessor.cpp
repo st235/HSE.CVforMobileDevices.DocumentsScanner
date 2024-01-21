@@ -1,6 +1,7 @@
 #include "github_com_st235_documentscanner_utils_documents_ImageProcessor.h"
 
 #include <cstdint>
+#include <opencv2/core.hpp>
 
 #include "processor/ImageProcessor.h"
 

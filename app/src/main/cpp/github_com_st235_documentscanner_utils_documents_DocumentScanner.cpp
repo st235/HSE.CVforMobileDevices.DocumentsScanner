@@ -22,7 +22,7 @@ JNIEXPORT void JNICALL Java_github_com_st235_documentscanner_utils_documents_Doc
         jlong scannerPointer,
         jlong image, jfloatArray jcorners,
         jlong out) {
-    const auto cornersLength = static_cast<int32_t>(env->GetArrayLength(jcorners));
+    const auto cornersLength = static_cast<uint32_t>(env->GetArrayLength(jcorners));
 
     if (cornersLength != 8) {
         return;

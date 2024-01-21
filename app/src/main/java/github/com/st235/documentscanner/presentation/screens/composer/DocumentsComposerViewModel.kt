@@ -73,6 +73,10 @@ class DocumentsComposerViewModel(
 
             _documentCompositionOverviewState.update {
                 DocumentsCompositionOverviewUiState(
+                    isLoading = false,
+                    isFinished = false,
+                    shouldStitch = availablePages.size > 1,
+                    shouldAddMoreDocuments = true,
                     pages = availablePages
                 )
             }
@@ -151,6 +155,10 @@ class DocumentsComposerViewModel(
 
             _documentCompositionOverviewState.update {
                 DocumentsCompositionOverviewUiState(
+                    isLoading = false,
+                    isFinished = false,
+                    shouldStitch = availablePages.size > 1,
+                    shouldAddMoreDocuments = true,
                     pages = availablePages
                 )
             }
@@ -159,6 +167,20 @@ class DocumentsComposerViewModel(
                 isLoading = false,
                 isFinished = true
             )
+        }
+    }
+
+    fun save() {
+        _documentCompositionOverviewState.value = _documentCompositionOverviewState.value.copy(isLoading = true)
+
+        backgroundScope.launch {
+            documentsCompositionInteractor.save()
+
+            _documentCompositionOverviewState.value =
+                _documentCompositionOverviewState.value.copy(
+                    isLoading = false,
+                    isFinished = true
+                )
         }
     }
 

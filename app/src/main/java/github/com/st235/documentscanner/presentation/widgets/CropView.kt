@@ -48,7 +48,14 @@ fun CropView(
         onCropAreaChanged(imageCroppedArea)
     }
 
-    dragController.imageCropArea = if (imageCroppedArea == CropArea.ALL) {
+    val isConvexHull = checkIfBarycentricCoordinatesValid(
+        p = imageCroppedArea.topLeft,
+        a = imageCroppedArea.bottomRight, b = imageCroppedArea.topRight, c = imageCroppedArea.bottomLeft
+    ) { a, b, c ->
+        a < 0 && b > 0 && c > 0
+    }
+
+    dragController.imageCropArea = if (!isConvexHull || imageCroppedArea == CropArea.ALL) {
         CropArea(
             topLeft = Offset(0f, 0f),
             topRight = Offset(image.width.toFloat(), 0f),

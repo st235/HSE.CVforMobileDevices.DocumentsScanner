@@ -16,15 +16,15 @@ class GallerySaver(
 
     @WorkerThread
     fun save(
+        source: Bitmap,
         title: String,
-        description: String,
         album: String,
-        source: Bitmap
+        description: String? = null
     ): Uri? {
         val values = ContentValues()
         values.put(MediaStore.Images.Media.TITLE, title)
         values.put(MediaStore.Images.Media.DISPLAY_NAME, title)
-        values.put(MediaStore.Images.Media.DESCRIPTION, description)
+        description?.let { values.put(MediaStore.Images.Media.DESCRIPTION, it) }
         values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
         values.put(MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis())
         values.put(MediaStore.MediaColumns.RELATIVE_PATH,
@@ -41,7 +41,7 @@ class GallerySaver(
             uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
                 ?: return null
             val imageOut = contentResolver.openOutputStream(uri)
-            imageOut?.use { imageOut ->
+            imageOut?.use { _ ->
                 source.compress(Bitmap.CompressFormat.JPEG, 100, imageOut)
             }
         } catch (e: Exception) {

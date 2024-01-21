@@ -48,6 +48,8 @@ class LocalUriLoader(
             var inputStream = contentResolver.openInputStream(uri)
 
             options.inJustDecodeBounds = true
+            options.inPreferredConfig = Bitmap.Config.RGB_565
+
             BitmapFactory.decodeStream(inputStream, null, options)
             inputStream?.close()
 
