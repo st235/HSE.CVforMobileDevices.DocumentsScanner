@@ -3,6 +3,7 @@ package github.com.st235.documentscanner.utils.documents
 import android.graphics.Bitmap
 import org.opencv.android.Utils
 import org.opencv.core.Mat
+import org.opencv.imgproc.Imgproc
 
 class ImageProcessor {
 
@@ -57,6 +58,7 @@ class ImageProcessor {
     fun binarise(image: Bitmap, mode: Binarization): Bitmap {
         val matIn = Mat()
         Utils.bitmapToMat(image, matIn)
+        Imgproc.cvtColor(matIn, matIn, Imgproc.COLOR_BGRA2BGR)
 
         val matOut = Mat()
         binarization(nativePointer, matIn.nativeObj, mode.id, matOut.nativeObj)
@@ -69,6 +71,7 @@ class ImageProcessor {
     fun filter(image: Bitmap, mode: Filter): Bitmap {
         val matIn = Mat()
         Utils.bitmapToMat(image, matIn)
+        Imgproc.cvtColor(matIn, matIn, Imgproc.COLOR_BGRA2BGR)
 
         val matOut = Mat()
         filter(nativePointer, matIn.nativeObj, mode.id, matOut.nativeObj)
@@ -81,6 +84,7 @@ class ImageProcessor {
     fun denoise(image: Bitmap, mode: Denoising): Bitmap {
         val matIn = Mat()
         Utils.bitmapToMat(image, matIn)
+        Imgproc.cvtColor(matIn, matIn, Imgproc.COLOR_BGRA2BGR)
 
         val matOut = Mat()
         denoise(nativePointer, matIn.nativeObj, mode.id, matOut.nativeObj)
@@ -93,6 +97,7 @@ class ImageProcessor {
     fun enhanceContrast(image: Bitmap, mode: Contrast): Bitmap {
         val matIn = Mat()
         Utils.bitmapToMat(image, matIn)
+        Imgproc.cvtColor(matIn, matIn, Imgproc.COLOR_BGRA2BGR)
 
         val matOut = Mat()
         enhanceContrast(nativePointer, matIn.nativeObj, mode.id, matOut.nativeObj)

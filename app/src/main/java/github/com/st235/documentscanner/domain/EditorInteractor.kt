@@ -15,4 +15,16 @@ class EditorInteractor(
         return imageProcessor.binarise(document, mode)
     }
 
+    fun filter(document: Bitmap, mode: ImageProcessor.Filter): Bitmap {
+        return imageProcessor.filter(document, mode)
+    }
+
+    fun contrast(document: Bitmap, mode: ImageProcessor.Contrast): Bitmap {
+        return imageProcessor.enhanceContrast(document, mode)
+    }
+
+    fun denoising(document: Bitmap, mode: ImageProcessor.Denoising): Bitmap {
+        return imageProcessor.denoise(document, mode)
+    }
+
 }

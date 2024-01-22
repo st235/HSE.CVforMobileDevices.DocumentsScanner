@@ -11,6 +11,7 @@ import github.com.st235.documentscanner.presentation.screens.composer.cropper.Do
 import github.com.st235.documentscanner.presentation.screens.composer.editor.DocumentEditorUiState
 import github.com.st235.documentscanner.presentation.screens.composer.overview.DocumentsCompositionOverviewUiState
 import github.com.st235.documentscanner.utils.documents.ImageProcessor
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -39,6 +40,8 @@ class DocumentsComposerViewModel(
     )
 
     val documentEditorUiState = _documentEditorUiState.asStateFlow()
+
+    private var editingOperationsJob: Job? = null
 
     fun prepareUriForCropping(documentUri: Uri) {
         _documentCropperState.value = DocumentCropperUiState.EMPTY
@@ -118,15 +121,37 @@ class DocumentsComposerViewModel(
         }
     }
 
+    fun filter(document: Bitmap?, mode: ImageProcessor.Filter) {
+        applyEditingOperation(document) {
+            editorInteractor.filter(it, mode)
+        }
+    }
+
+    fun contrast(document: Bitmap?, mode: ImageProcessor.Contrast) {
+        applyEditingOperation(document) {
+            editorInteractor.contrast(it, mode)
+        }
+    }
+
+    fun denoising(document: Bitmap?, mode: ImageProcessor.Denoising) {
+        applyEditingOperation(document) {
+            editorInteractor.denoising(it, mode)
+        }
+    }
+
     private fun applyEditingOperation(document: Bitmap?, operation: (oldBitmap: Bitmap) -> Bitmap) {
         if (document == null) {
             return
         }
 
         val documentId = _documentEditorUiState.value.documentId
+
+        // Cancel previous operation.
+        editingOperationsJob?.cancel()
+
         _documentEditorUiState.value = _documentEditorUiState.value.copy(isLoading = true)
 
-        backgroundScope.launch {
+        editingOperationsJob = backgroundScope.launch {
             val newDocument = operation(document)
 
             _documentEditorUiState.update {

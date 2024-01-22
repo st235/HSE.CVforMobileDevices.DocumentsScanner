@@ -29,7 +29,9 @@ class NavigatonActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            DocumentScannerTheme {
+            DocumentScannerTheme(
+                dynamicColor = false,
+            ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background

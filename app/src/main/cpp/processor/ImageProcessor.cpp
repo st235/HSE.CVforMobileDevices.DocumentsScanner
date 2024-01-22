@@ -6,7 +6,7 @@
 
 namespace {
 
-void HistogramEqualisation(const cv::Mat& image, cv::Mat out) {
+void HistogramEqualisation(const cv::Mat& image, cv::Mat& out) {
     cv::cvtColor(image, out, cv::COLOR_BGR2YCrCb);
 
     std::vector<cv::Mat> vec_channels;
@@ -19,7 +19,7 @@ void HistogramEqualisation(const cv::Mat& image, cv::Mat out) {
     cv::cvtColor(out, out, cv::COLOR_YCrCb2BGR);
 }
 
-void CLAHE(const cv::Mat& image, cv::Mat out) {
+void CLAHE(const cv::Mat& image, cv::Mat& out) {
     cv::cvtColor(image, out, cv::COLOR_BGR2Lab);
 
     std::vector<cv::Mat> lab_planes(3);
@@ -72,16 +72,16 @@ void ImageProcessor::filter(const cv::Mat& image,
                             cv::Mat& out) const {
     switch (mode) {
         case FILTER::BOX:
-            cv::boxFilter(image, out, /* ddepth= */ -1, cv::Size(3, 3));
+            cv::boxFilter(image, out, /* ddepth= */ -1, cv::Size(7, 7));
             break;
         case FILTER::MEDIAN:
             cv::medianBlur(image, out, 3);
             break;
         case FILTER::GAUSSIAN:
-            cv::GaussianBlur(image, out, cv::Size(3, 3), 0);
+            cv::GaussianBlur(image, out, cv::Size(7, 7), 0);
             break;
         case FILTER::BILATERAL:
-            cv::bilateralFilter(image, out, /* d= */ 9, /* sigmaColor= */ 75, /* sigmaSpace= */ 75);
+            cv::bilateralFilter(image, out, /* d= */ 11, /* sigmaColor= */ 75, /* sigmaSpace= */ 75);
             break;
     }
 }

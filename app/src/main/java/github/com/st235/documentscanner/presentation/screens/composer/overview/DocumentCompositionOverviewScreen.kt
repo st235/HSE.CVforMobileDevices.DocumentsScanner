@@ -6,12 +6,19 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,12 +28,19 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardColors
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -35,10 +49,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -50,6 +69,7 @@ import github.com.st235.documentscanner.presentation.screens.composer.DocumentsC
 import github.com.st235.documentscanner.presentation.widgets.DocumentPreview
 import github.com.st235.documentscanner.utils.createTempUri
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DocumentCompositionOverviewScreen(
     sharedViewModel: DocumentsComposerViewModel,
@@ -93,6 +113,17 @@ fun DocumentCompositionOverviewScreen(
 
     Scaffold(
         modifier = modifier,
+        topBar = {
+            TopAppBar(
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    titleContentColor = MaterialTheme.colorScheme.primary,
+                ),
+                title = {
+                    Text("Small Top App Bar")
+                }
+            )
+        },
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 icon = {
@@ -154,58 +185,64 @@ fun DocumentCompositionOverviewScreen(
 @Composable
 fun FilePickUpButton(
     modifier: Modifier = Modifier,
+    backgroundColor: Color = MaterialTheme.colorScheme.surface,
+    cornerRadius: Dp = 16.dp,
     onCameraClick: () -> Unit = {},
     onGalleryClick: () -> Unit = {},
 ) {
-    Card(
-        shape = RoundedCornerShape(16.dp),
+    val interactionSource = remember { MutableInteractionSource() }
+
+    Row(
         modifier = modifier
+            .fillMaxWidth()
             .aspectRatio(1f),
     ) {
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
+        Box(
+            contentAlignment = Alignment.Center,
             modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
+                .fillMaxHeight()
+                .weight(0.475f)
+                .clip(
+                    RoundedCornerShape(
+                        cornerRadius,
+                        cornerRadius / 2,
+                        cornerRadius / 2,
+                        cornerRadius
+                    )
+                )
+                .background(backgroundColor)
+                .clickable(onClick = onCameraClick, indication = rememberRipple(), interactionSource = interactionSource),
         ) {
-            Button(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                onClick = { onCameraClick() }
-            ) {
-                Image(
-                    painterResource(R.drawable.ic_photo_camera_24),
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp)
+           Image(
+               painterResource(R.drawable.ic_add_a_photo_24),
+               colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
+               contentDescription = null,
+               modifier = Modifier.size(32.dp)
+           )
+        }
+        Spacer(modifier = Modifier.weight(0.05f))
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .fillMaxHeight()
+                .weight(0.475f)
+                .clip(
+                    RoundedCornerShape(
+                        cornerRadius / 2,
+                        cornerRadius,
+                        cornerRadius,
+                        cornerRadius / 2
+                    )
                 )
-                Text(
-                    text = stringResource(R.string.document_overview_screen_open_camera),
-                    fontSize = 12.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(start = 10.dp)
-                )
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                onClick = { onGalleryClick() }
-            ) {
-                Image(
-                    painterResource(R.drawable.ic_perm_media_24),
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp)
-                )
-                Text(
-                    text = stringResource(R.string.document_overview_screen_pick_media),
-                    fontSize = 12.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(start = 10.dp)
-                )
-            }
+                .background(backgroundColor)
+                .clickable(onClick = onGalleryClick, indication = rememberRipple(), interactionSource = interactionSource),
+        ) {
+            Image(
+                painterResource(R.drawable.ic_perm_media_24),
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
+                contentDescription = null,
+                modifier = Modifier.size(32.dp)
+            )
         }
     }
 }

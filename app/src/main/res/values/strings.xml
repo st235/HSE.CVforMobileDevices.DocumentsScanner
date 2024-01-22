@@ -13,8 +13,28 @@
 
     <string name="document_cropper_crop_button">Crop</string>
 
-
     <string name="document_editor_save">Patch</string>
     <string name="document_editor_rotate_90_cw">Rotate 90 Clockwise</string>
     <string name="document_editor_binarisation">Binarise</string>
+    <string name="document_editor_filter">Filter</string>
+    <string name="document_editor_denoising">Denoising</string>
+    <string name="document_editor_contrast">Contrast</string>
+
+    <string name="document_editor_binarisation_global">Global</string>
+    <string name="document_editor_binarisation_adaptive_mean">Adaptive mean</string>
+    <string name="document_editor_binarisation_adaptive_gaussian">Adaptive gaussian</string>
+    <string name="document_editor_binarisation_otsu">Otsu</string>
+    <string name="document_editor_binarisation_triangle">Triangle</string>
+
+    <string name="document_editor_filter_box">Box</string>
+    <string name="document_editor_filter_gaussian">Gaussian</string>
+    <string name="document_editor_filter_median">Median</string>
+    <string name="document_editor_filter_bilateral">Bilateral</string>
+
+    <string name="document_editor_denoising_tvl1">TVL1</string>
+    <string name="document_editor_denoising_fastni">Fast NI</string>
+
+    <string name="document_editor_contrast_mult">Mutl</string>
+    <string name="document_editor_contrast_histogram">Histogram</string>
+    <string name="document_editor_contrast_clahe">Clahe</string>
 </resources>
