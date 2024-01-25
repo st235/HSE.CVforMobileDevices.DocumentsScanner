@@ -3,10 +3,11 @@
 #include <opencv2/core.hpp>
 
 #include "scanner/DocumentScanner.h"
+#include "scanner/ContourDocumentScanner.h"
 
 JNIEXPORT jlong JNICALL Java_github_com_st235_documentscanner_utils_documents_DocumentScanner_init(
         JNIEnv* env, jclass clazz) {
-    const auto* scanner = new scanner::DocumentScanner();
+    const auto* scanner = new scanner::ContourDocumentScanner();
     return reinterpret_cast<jlong>(scanner);
 }
 

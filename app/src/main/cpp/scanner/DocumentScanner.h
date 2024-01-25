@@ -7,12 +7,14 @@ namespace scanner {
 
 class DocumentScanner {
 public:
-    void wrapPerspective(const cv::Mat& image,
-                         float corners[8],
-                         cv::Mat& outImage) const;
+    virtual void wrapPerspective(const cv::Mat& image,
+                                 float corners[8],
+                                 cv::Mat& outImage) const;
 
-    bool findCorners(const cv::Mat& image,
-                     float corners[8]) const;
+    virtual bool findCorners(const cv::Mat& image,
+                             float corners[8]) const = 0;
+
+    virtual ~DocumentScanner() = default;
 };
 
 } // namespace scanner

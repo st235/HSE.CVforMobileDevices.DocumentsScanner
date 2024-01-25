@@ -13,6 +13,7 @@ OPENCV_LIB_TYPE := SHARED
 include ${OPENCV_ROOT}/sdk/native/jni/OpenCV.mk
 
 LOCAL_SRC_FILES := \
+    scanner/ContourDocumentScanner.cpp \
     scanner/DocumentScanner.cpp \
     processor/ImageProcessor.cpp \
     processor/ImageStitcher.cpp \
