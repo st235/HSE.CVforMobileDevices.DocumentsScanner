@@ -15,6 +15,7 @@ include ${OPENCV_ROOT}/sdk/native/jni/OpenCV.mk
 LOCAL_SRC_FILES := \
     scanner/ContourDocumentScanner.cpp \
     scanner/DocumentScanner.cpp \
+    scanner/HoughDocumentScanner.cpp \
     processor/ImageProcessor.cpp \
     processor/ImageStitcher.cpp \
     github_com_st235_documentscanner_utils_documents_DocumentScanner.cpp \
