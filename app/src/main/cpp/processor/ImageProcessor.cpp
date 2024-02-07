@@ -36,6 +36,50 @@ void CLAHE(const cv::Mat& image, cv::Mat& out) {
     cv::cvtColor(out, out, cv::COLOR_Lab2BGR);
 }
 
+bool CharThreshold(const cv::Mat& image,
+                   double percent,
+                   cv::Mat& out) {
+    if (image.type() != CV_8UC1) {
+        return false;
+    }
+
+    int histSize = 256;
+    float range[] = { 0, 256 }; //the upper boundary is exclusive
+    const float* histRange[] = { range };
+    bool uniform = true, accumulate = false;
+    cv::Mat hist;
+    cv::calcHist(&image, 1, 0, cv::Mat(), hist, 1, &histSize, histRange, uniform, accumulate);
+
+    double min, max;
+    cv::Point minLoc, maxLoc;
+
+    minMaxLoc(hist, &min, &max, &minLoc, &maxLoc);
+
+    uint8_t maxColor = static_cast<uint8_t>(maxLoc.y);
+    bool ruledOutColors[histSize];
+
+    for (int32_t i = maxColor; i >= 0; i--) {
+        bool isFrequencyAtMostPercentOfWhile = hist.at<float>(i) < (max * (1.0 - percent));
+        ruledOutColors[i] = isFrequencyAtMostPercentOfWhile;
+    }
+
+    cv::Mat result = cv::Mat::zeros(image.rows, image.cols, CV_8UC1);
+
+    for (size_t r = 0; r < image.rows; r++) {
+        for (size_t c = 0; c < image.cols; c++) {
+            uint8_t color = image.at<uint8_t>(r, c);
+            if (color < maxColor && ruledOutColors[color]) {
+                result.at<uint8_t>(r, c) = static_cast<uint8_t>(0);
+            } else {
+                result.at<uint8_t>(r, c) = static_cast<uint8_t>(255);
+            }
+        }
+    }
+
+    out = result;
+    return true;
+}
+
 } // namespace
 
 void ImageProcessor::rotate90(const cv::Mat& image,
@@ -47,6 +91,7 @@ void ImageProcessor::binarization(const cv::Mat& image,
                                   const BINARIZATION& mode,
                                   cv::Mat& out) const {
     cv::cvtColor(image, out, cv::COLOR_BGR2GRAY);
+    cv::GaussianBlur(out, out, cv::Size(3, 3), 0);
 
     switch (mode) {
         case BINARIZATION::GLOBAL:
@@ -63,6 +108,9 @@ void ImageProcessor::binarization(const cv::Mat& image,
             break;
         case BINARIZATION::ADAPTIVE_GAUSSIAN:
             cv::adaptiveThreshold(out, out, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY,11,2);
+            break;
+        case BINARIZATION::CHAR:
+            CharThreshold(out, 0.95, out);
             break;
     }
 }

@@ -13,6 +13,7 @@ val ImageProcessor.Binarization.stringRes: Int
             ImageProcessor.Binarization.ADAPTIVE_GAUSSIAN -> R.string.document_editor_binarisation_adaptive_gaussian
             ImageProcessor.Binarization.OTSU -> R.string.document_editor_binarisation_otsu
             ImageProcessor.Binarization.TRIANGLE -> R.string.document_editor_binarisation_triangle
+            ImageProcessor.Binarization.CHAR -> R.string.document_editor_binarisation_char
         }
     }
 

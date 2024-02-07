@@ -13,6 +13,7 @@ class ImageProcessor {
         ADAPTIVE_GAUSSIAN(2),
         OTSU(3),
         TRIANGLE(4),
+        CHAR(5),
     }
 
     enum class Filter(val id: Int) {

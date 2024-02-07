@@ -25,6 +25,7 @@
     <string name="document_editor_binarisation_adaptive_gaussian">Adaptive gaussian</string>
     <string name="document_editor_binarisation_otsu">Otsu</string>
     <string name="document_editor_binarisation_triangle">Triangle</string>
+    <string name="document_editor_binarisation_char">Character threshold</string>
 
     <string name="document_editor_filter_box">Box</string>
     <string name="document_editor_filter_gaussian">Gaussian</string>

@@ -11,6 +11,7 @@ public:
         ADAPTIVE_GAUSSIAN,
         OTSU,
         TRIANGLE,
+        CHAR,
     };
 
     enum class FILTER {
