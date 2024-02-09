@@ -6,8 +6,13 @@ import android.media.MediaMetadataRetriever
 import android.net.Uri
 
 class VideoFramesExtractor(
-    private val context: Context
+    private val context: Context,
+    private val desiredFps: Int = DEFAULT_FPS
 ) {
+
+    private companion object {
+        const val DEFAULT_FPS = 24
+    }
 
     data class Frame(
         val timestamp: Long,
@@ -16,18 +21,18 @@ class VideoFramesExtractor(
 
     class VideoFramesIterator(
         context: Context,
-        uri: Uri
+        uri: Uri,
+        desiredFps: Int
     ): Iterator<Frame> {
 
         private companion object {
-            const val DEFAULT_FPS = 24
             const val CONVERSION_FACTOR_SEC_TO_MS = 1000L
             const val CONVERSION_FACTOR_MS_TO_US = 1000L
         }
 
         private val mediaMetadataRetriever = MediaMetadataRetriever()
 
-        private val frameDurationMs: Long = ((1.0 / DEFAULT_FPS) * CONVERSION_FACTOR_SEC_TO_MS).toLong()
+        private val frameDurationMs: Long = ((1.0 / desiredFps) * CONVERSION_FACTOR_SEC_TO_MS).toLong()
 
         private val durationMs: Long
 
@@ -60,6 +65,6 @@ class VideoFramesExtractor(
     }
 
     fun load(uri: Uri): VideoFramesIterator {
-        return VideoFramesIterator(context, uri)
+        return VideoFramesIterator(context, uri, desiredFps)
     }
 }
