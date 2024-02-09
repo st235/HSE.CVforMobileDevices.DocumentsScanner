@@ -10,6 +10,8 @@ import github.com.st235.documentscanner.utils.BitmapWriter
 import github.com.st235.documentscanner.utils.DocumentsNameGenerator
 import github.com.st235.documentscanner.utils.LocalUriLoader
 import github.com.st235.documentscanner.utils.TempUriProvider
+import github.com.st235.documentscanner.utils.UriMimeTypeHandler
+import github.com.st235.documentscanner.utils.VideoFramesExtractor
 import github.com.st235.documentscanner.utils.documents.ImageProcessor
 import github.com.st235.documentscanner.utils.documents.ImageStitcher
 import github.com.st235.documentscanner.utils.gallery.GallerySaver
@@ -26,7 +28,7 @@ private val viewModelsModule = module {
 
 private val domainModule = module {
 
-    factory { CropInteractor(get(), get()) }
+    factory { CropInteractor(get(), get(), get(), get()) }
 
     factory { DocumentsCompositionInteractor(get(), get(), get(), get(), get(), get()) }
 
@@ -55,6 +57,10 @@ private val utilsModule = module {
     factory { TempUriProvider(androidContext()) }
 
     factory { DocumentsNameGenerator(androidContext()) }
+
+    factory { VideoFramesExtractor(androidContext()) }
+
+    factory { UriMimeTypeHandler(get()) }
 
 }
 

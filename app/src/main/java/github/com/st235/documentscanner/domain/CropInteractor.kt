@@ -2,12 +2,17 @@ package github.com.st235.documentscanner.domain
 
 import android.graphics.Bitmap
 import android.net.Uri
+import android.util.Log
 import github.com.st235.documentscanner.utils.LocalUriLoader
+import github.com.st235.documentscanner.utils.UriMimeTypeHandler
+import github.com.st235.documentscanner.utils.VideoFramesExtractor
 import github.com.st235.documentscanner.utils.documents.DocumentScanner
 
 class CropInteractor(
     private val documentScanner: DocumentScanner,
-    private val localUriLoader: LocalUriLoader
+    private val localUriLoader: LocalUriLoader,
+    private val uriMimeTypeHandler: UriMimeTypeHandler,
+    private val videoFramesExtractor: VideoFramesExtractor,
 ) {
 
     @Volatile
@@ -15,7 +20,27 @@ class CropInteractor(
 
     @Synchronized
     fun prepareBitmap(uri: Uri) {
-        currentBitmap = localUriLoader.load(uri)
+        val isVideo = uriMimeTypeHandler.isVideo(uri)
+        currentBitmap = if (isVideo) {
+            prepareVideoDocument(uri)
+        } else {
+            prepareImageDocument(uri)
+        }
+    }
+
+    @Synchronized
+    private fun prepareImageDocument(uri: Uri): Bitmap? {
+        return localUriLoader.load(uri)
+    }
+
+    @Synchronized
+    private fun prepareVideoDocument(uri: Uri): Bitmap? {
+        val videoIterator = videoFramesExtractor.load(uri)
+        for (frame in videoIterator) {
+            Log.d("HelloWorld", "frame timestamp: " + frame.timestamp)
+        }
+
+        TODO("Implement OpenCV key frame extraction logic.")
     }
 
 
