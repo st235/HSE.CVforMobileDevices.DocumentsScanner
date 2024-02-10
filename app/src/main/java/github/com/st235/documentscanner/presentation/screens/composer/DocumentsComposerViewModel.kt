@@ -9,6 +9,7 @@ import github.com.st235.documentscanner.utils.documents.DocumentScanner
 import github.com.st235.documentscanner.presentation.base.BaseViewModel
 import github.com.st235.documentscanner.presentation.screens.composer.cropper.DocumentCropperUiState
 import github.com.st235.documentscanner.presentation.screens.composer.editor.DocumentEditorUiState
+import github.com.st235.documentscanner.presentation.screens.composer.editor.isPossibleToUndo
 import github.com.st235.documentscanner.presentation.screens.composer.overview.DocumentsCompositionOverviewUiState
 import github.com.st235.documentscanner.utils.documents.ImageProcessor
 import kotlinx.coroutines.Job
@@ -107,6 +108,19 @@ class DocumentsComposerViewModel(
                 )
             }
         }
+    }
+
+    fun undo() {
+        if (!documentEditorUiState.value.isPossibleToUndo) {
+            return
+        }
+
+        val previousDocument = _documentEditorUiState.value.previousDocument
+
+        _documentEditorUiState.value = _documentEditorUiState.value.copy(
+            currentDocument = previousDocument,
+            previousDocument = null,
+        )
     }
 
     fun rotate90Clockwise(document: Bitmap?) {

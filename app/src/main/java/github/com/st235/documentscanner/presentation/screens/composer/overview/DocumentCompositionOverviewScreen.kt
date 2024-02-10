@@ -56,6 +56,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -116,11 +117,14 @@ fun DocumentCompositionOverviewScreen(
         topBar = {
             TopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.primary,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
                 ),
                 title = {
-                    Text("Small Top App Bar")
+                    Text(
+                        stringResource(id = R.string.document_overview_screen_title),
+                        fontWeight = FontWeight.Medium
+                    )
                 }
             )
         },
@@ -211,7 +215,11 @@ fun FilePickUpButton(
                     )
                 )
                 .background(backgroundColor)
-                .clickable(onClick = onCameraClick, indication = rememberRipple(), interactionSource = interactionSource),
+                .clickable(
+                    onClick = onCameraClick,
+                    indication = rememberRipple(),
+                    interactionSource = interactionSource
+                ),
         ) {
            Image(
                painterResource(R.drawable.ic_add_a_photo_24),
@@ -235,7 +243,11 @@ fun FilePickUpButton(
                     )
                 )
                 .background(backgroundColor)
-                .clickable(onClick = onGalleryClick, indication = rememberRipple(), interactionSource = interactionSource),
+                .clickable(
+                    onClick = onGalleryClick,
+                    indication = rememberRipple(),
+                    interactionSource = interactionSource
+                ),
         ) {
             Image(
                 painterResource(R.drawable.ic_perm_media_24),
@@ -247,8 +259,14 @@ fun FilePickUpButton(
     }
 }
 
-private fun isCameraPermissionGranted(context: Context): Boolean {
-    return ContextCompat.checkSelfPermission(context, android.Manifest.permission.CAMERA) ==
+private fun isCameraPermissionGranted(context: Context): Boolean =
+    isPermissionGranted(android.Manifest.permission.CAMERA, context)
+
+private fun isWriteExternalStoragePermissionGranted(context: Context): Boolean =
+    isPermissionGranted(android.Manifest.permission.WRITE_EXTERNAL_STORAGE, context)
+
+private fun isPermissionGranted(permission: String, context: Context): Boolean {
+    return ContextCompat.checkSelfPermission(context, permission) ==
             PackageManager.PERMISSION_GRANTED
 }
 

@@ -90,7 +90,7 @@ class ImageProcessor {
         val matOut = Mat()
         denoise(nativePointer, matIn.nativeObj, mode.id, matOut.nativeObj)
 
-        val out = Bitmap.createBitmap(matOut.cols(), matOut.rows(),Bitmap.Config.RGB_565)
+        val out = Bitmap.createBitmap(matOut.cols(), matOut.rows(), Bitmap.Config.RGB_565)
         Utils.matToBitmap(matOut, out)
         return out
     }

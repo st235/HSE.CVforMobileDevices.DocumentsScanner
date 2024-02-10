@@ -33,8 +33,8 @@ fun LoadingView(
                     modifier = Modifier
                         .width(64.dp)
                         .align(Alignment.Center),
-                    color = MaterialTheme.colorScheme.onSurface,
-                    trackColor = MaterialTheme.colorScheme.surface,
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.onPrimary,
                 )
             }
         }

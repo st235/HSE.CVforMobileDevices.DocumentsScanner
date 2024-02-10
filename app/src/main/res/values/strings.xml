@@ -3,6 +3,7 @@
 
     <string name="feed_screen_start_flow">Scan new document</string>
 
+    <string name="document_overview_screen_title">Document Creation Overview</string>
     <string name="document_overview_screen_pick_media">Pick media</string>
     <string name="document_overview_screen_open_camera">Take a picture</string>
     <string name="document_overview_save_button">Save</string>
@@ -11,9 +12,11 @@
     <string name="document_overview_document_preview_template">Page %d</string>
     <string name="document_overview_document_save_template">Document Scan %s</string>
 
+    <string name="document_cropper_title">Select Area To Crop</string>
     <string name="document_cropper_crop_button">Crop</string>
 
-    <string name="document_editor_save">Patch</string>
+    <string name="document_editor_title">Modify</string>
+    <string name="document_editor_save">Apply</string>
     <string name="document_editor_rotate_90_cw">Rotate 90 Clockwise</string>
     <string name="document_editor_binarisation">Binarise</string>
     <string name="document_editor_filter">Filter</string>

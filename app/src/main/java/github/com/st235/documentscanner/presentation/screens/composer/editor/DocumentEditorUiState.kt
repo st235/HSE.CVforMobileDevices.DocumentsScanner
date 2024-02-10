@@ -19,3 +19,8 @@ data class DocumentEditorUiState(
         )
     }
 }
+
+val DocumentEditorUiState.isPossibleToUndo: Boolean
+    get() {
+        return !isLoading && !isFinished && currentDocument != null && previousDocument != null
+    }

@@ -139,8 +139,11 @@ void ImageProcessor::denoise(const cv::Mat& image,
                              cv::Mat& out) const {
     switch (mode) {
         case DENOISING::TVL1: {
+            cv::Mat temp;
+            cv::cvtColor(image, temp, cv::COLOR_BGR2GRAY);
+
             std::vector<cv::Mat> images;
-            images.push_back(image);
+            images.push_back(temp);
             cv::denoise_TVL1(images, out);
             break;
         }

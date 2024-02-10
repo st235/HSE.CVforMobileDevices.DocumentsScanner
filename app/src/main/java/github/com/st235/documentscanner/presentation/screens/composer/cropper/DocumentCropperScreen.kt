@@ -3,10 +3,14 @@ package github.com.st235.documentscanner.presentation.screens.composer.cropper
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.systemGestureExclusion
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -17,14 +21,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import github.com.st235.documentscanner.R
 import github.com.st235.documentscanner.presentation.screens.composer.DocumentsComposerViewModel
 import github.com.st235.documentscanner.presentation.widgets.CropArea
 import github.com.st235.documentscanner.presentation.widgets.CropView
+import github.com.st235.documentscanner.presentation.widgets.LoadingView
 import github.com.st235.documentscanner.utils.documents.DocumentScanner
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DocumentCropperScreen(
     sharedViewModel: DocumentsComposerViewModel,
@@ -40,36 +47,52 @@ fun DocumentCropperScreen(
         }
     }
 
-    Scaffold(
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                icon = {
-                    Icon(
-                        painterResource(R.drawable.ic_crop_24),
-                        contentDescription = null
-                    )
-                },
-                text = { Text(text = stringResource(R.string.document_cropper_crop_button)) },
-                onClick = { sharedViewModel.cropAndSave(currentlySelectedCropArea.asCorners()) }
-            )
-        },
-        modifier = modifier
-    ) { paddings ->
-        val document = state.document
-        val corners = state.detectedCorners.asCropArea()
+    LoadingView(isLoading = state.isLoading) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    ),
+                    title = {
+                        Text(
+                            stringResource(id = R.string.document_cropper_title),
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                )
+            },
+            floatingActionButton = {
+                ExtendedFloatingActionButton(
+                    icon = {
+                        Icon(
+                            painterResource(R.drawable.ic_crop_24),
+                            contentDescription = null
+                        )
+                    },
+                    text = { Text(text = stringResource(R.string.document_cropper_crop_button)) },
+                    onClick = { sharedViewModel.cropAndSave(currentlySelectedCropArea.asCorners()) }
+                )
+            },
+            modifier = modifier
+        ) { paddings ->
+            val document = state.document
+            val corners = state.detectedCorners.asCropArea()
 
-        if (document != null) {
-            CropView(
-                image = document,
-                imageCroppedArea = corners,
-                modifier = Modifier
-                    .padding(paddings)
-                    .fillMaxSize()
-                    .systemGestureExclusion(),
-                onCropAreaChanged = {
-                    currentlySelectedCropArea = it
-                }
-            )
+            if (document != null) {
+                CropView(
+                    image = document,
+                    imageCroppedArea = corners,
+                    modifier = Modifier
+                        .padding(paddings)
+                        .fillMaxSize()
+                        .systemGestureExclusion(),
+                    onCropAreaChanged = {
+                        currentlySelectedCropArea = it
+                    }
+                )
+            }
         }
     }
 }

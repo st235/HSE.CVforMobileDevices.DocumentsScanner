@@ -13,11 +13,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -49,6 +53,7 @@ import github.com.st235.documentscanner.utils.stringRes
 import st235.com.github.flowlayout.compose.FlowLayout
 import st235.com.github.flowlayout.compose.FlowLayoutDirection
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DocumentEditor(
     documentId: Int,
@@ -72,17 +77,47 @@ fun DocumentEditor(
 
     LoadingView(isLoading = state.isLoading) {
         Scaffold(
-            floatingActionButton = {
-                ExtendedFloatingActionButton(
-                    icon = {
-                        Icon(
-                            painterResource(R.drawable.ic_healing_24),
-                            contentDescription = null
+            topBar = {
+                TopAppBar(
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    ),
+                    title = {
+                        Text(
+                            stringResource(id = R.string.document_editor_title),
+                            fontWeight = FontWeight.Medium
                         )
-                    },
-                    text = { Text(text = stringResource(R.string.document_editor_save)) },
-                    onClick = { sharedViewModel.modifyDocument(documentId, document) },
+                    }
                 )
+            },
+            floatingActionButton = {
+                val canUndo = state.isPossibleToUndo
+
+                Column(
+                    horizontalAlignment = Alignment.End,
+                ) {
+                    if (canUndo) {
+                        SmallFloatingActionButton(
+                            onClick = { sharedViewModel.undo() }
+                        ) {
+                            Icon(
+                                painterResource(R.drawable.ic_undo_24),
+                                contentDescription = null
+                            )
+                        }
+                    }
+                    ExtendedFloatingActionButton(
+                        icon = {
+                            Icon(
+                                painterResource(R.drawable.ic_done_24),
+                                contentDescription = null
+                            )
+                        },
+                        text = { Text(text = stringResource(R.string.document_editor_save)) },
+                        onClick = { sharedViewModel.modifyDocument(documentId, document) },
+                    )
+                }
             },
             bottomBar = {
                 ControlPanel(
