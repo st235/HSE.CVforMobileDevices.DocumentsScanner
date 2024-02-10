@@ -1,0 +1,16 @@
+#ifndef DOCUMENTSCANNER_GITHUB_COM_ST235_DOCUMENTSCANNER_UTILS_DOCUMENTS_KEYFRAMEDETECTOR_H
+#define DOCUMENTSCANNER_GITHUB_COM_ST235_DOCUMENTSCANNER_UTILS_DOCUMENTS_KEYFRAMEDETECTOR_H
+
+#include <jni.h>
+
+extern "C" {
+
+JNIEXPORT jdouble JNICALL
+Java_github_com_st235_documentscanner_utils_documents_KeyFrameDetector_getFramesDiff(
+        JNIEnv *env, jclass clazz,
+        jlong one,
+        jlong another);
+
+}
+
+#endif //DOCUMENTSCANNER_GITHUB_COM_ST235_DOCUMENTSCANNER_UTILS_DOCUMENTS_KEYFRAMEDETECTOR_H

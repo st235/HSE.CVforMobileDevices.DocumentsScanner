@@ -11,9 +11,9 @@ import github.com.st235.documentscanner.utils.DocumentsNameGenerator
 import github.com.st235.documentscanner.utils.LocalUriLoader
 import github.com.st235.documentscanner.utils.TempUriProvider
 import github.com.st235.documentscanner.utils.UriMimeTypeHandler
-import github.com.st235.documentscanner.utils.VideoFramesExtractor
 import github.com.st235.documentscanner.utils.documents.ImageProcessor
 import github.com.st235.documentscanner.utils.documents.ImageStitcher
+import github.com.st235.documentscanner.utils.documents.KeyFrameDetector
 import github.com.st235.documentscanner.utils.gallery.GallerySaver
 import github.com.st235.documentscanner.utils.gallery.GalleryScanner
 import org.koin.android.ext.koin.androidContext
@@ -48,6 +48,8 @@ private val utilsModule = module {
 
     single { ImageStitcher() }
 
+    single { KeyFrameDetector(androidContext()) }
+
     factory { LocalUriLoader(get()) }
 
     factory { GallerySaver(get()) }
@@ -57,8 +59,6 @@ private val utilsModule = module {
     factory { TempUriProvider(androidContext()) }
 
     factory { DocumentsNameGenerator(androidContext()) }
-
-    factory { VideoFramesExtractor(androidContext()) }
 
     factory { UriMimeTypeHandler(get()) }
 

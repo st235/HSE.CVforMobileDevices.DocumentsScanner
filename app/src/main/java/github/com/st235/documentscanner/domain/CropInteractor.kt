@@ -2,17 +2,16 @@ package github.com.st235.documentscanner.domain
 
 import android.graphics.Bitmap
 import android.net.Uri
-import android.util.Log
 import github.com.st235.documentscanner.utils.LocalUriLoader
 import github.com.st235.documentscanner.utils.UriMimeTypeHandler
-import github.com.st235.documentscanner.utils.VideoFramesExtractor
 import github.com.st235.documentscanner.utils.documents.DocumentScanner
+import github.com.st235.documentscanner.utils.documents.KeyFrameDetector
 
 class CropInteractor(
     private val documentScanner: DocumentScanner,
     private val localUriLoader: LocalUriLoader,
     private val uriMimeTypeHandler: UriMimeTypeHandler,
-    private val videoFramesExtractor: VideoFramesExtractor,
+    private val keyFrameDetector: KeyFrameDetector,
 ) {
 
     @Volatile
@@ -35,12 +34,7 @@ class CropInteractor(
 
     @Synchronized
     private fun prepareVideoDocument(uri: Uri): Bitmap? {
-        val videoIterator = videoFramesExtractor.load(uri)
-        for (frame in videoIterator) {
-            Log.d("HelloWorld", "frame timestamp: " + frame.timestamp)
-        }
-
-        TODO("Implement OpenCV key frame extraction logic.")
+         return keyFrameDetector.getKeyFrame(uri)
     }
 
 

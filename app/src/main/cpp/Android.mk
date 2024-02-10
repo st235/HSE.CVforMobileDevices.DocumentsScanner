@@ -20,7 +20,8 @@ LOCAL_SRC_FILES := \
     processor/ImageStitcher.cpp \
     github_com_st235_documentscanner_utils_documents_DocumentScanner.cpp \
     github_com_st235_documentscanner_utils_documents_ImageProcessor.cpp \
-    github_com_st235_documentscanner_utils_documents_ImageStitcher.cpp
+    github_com_st235_documentscanner_utils_documents_ImageStitcher.cpp \
+    github_com_st235_documentscanner_utils_documents_KeyFrameDetector.cpp
 LOCAL_CFLAGS += -mfloat-abi=softfp -mfpu=neon -std=c++11
 LOCAL_ARM_NEON  := true
 LOCAL_LDLIBS += -llog
