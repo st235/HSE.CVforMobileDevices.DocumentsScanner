@@ -1,85 +1,63 @@
 #include "ImageStitcher.h"
 
 #include <opencv2/imgproc.hpp>
+#include <opencv2/calib3d/calib3d.hpp>
 
 void ImageStitcher::stitchHorizontally(const cv::Mat& one,
                                        const cv::Mat& another,
-                                       cv::Mat& out) const {
-    std::vector<cv::KeyPoint> oneKeypoints, anotherKeypoints;
-    cv::Mat oneDescriptors, anotherDescriptors;
+                                       cv::Mat& out,
+                                       double matchingThreshold) const {
+    cv::Mat image1 = one;
+    cv::Mat image2 = another;
 
-    _detector->detectAndCompute(one, cv::noArray(), oneKeypoints, oneDescriptors);
-    _detector->detectAndCompute(another, cv::noArray(), anotherKeypoints, anotherDescriptors);
+    std::vector<cv::KeyPoint> image1Keypoints, image2Keypoints;
+    cv::Mat image1Descriptors, image2Descriptors;
 
-    std::vector<cv::DMatch> matches;
+    _detector->detectAndCompute(image1, cv::noArray(), image1Keypoints, image1Descriptors);
+    _detector->detectAndCompute(image2, cv::noArray(), image2Keypoints, image2Descriptors);
 
-    _matcher->match(oneDescriptors, anotherDescriptors, matches);
-
-    std::vector<cv::Point2d> onePoints, anotherPoints;
-    onePoints.reserve(matches.size());
-    anotherPoints.reserve(matches.size());
-
-    double maxDist = 0; double minDist = 1e6;
-    for (const auto& m : matches) {
-        double dist = m.distance;
-        if (dist < minDist) minDist = dist;
-        if (dist > maxDist) maxDist = dist;
+    if (image1Keypoints.size() < image2Keypoints.size()) {
+        std::swap(image1, image2);
+        std::swap(image1Keypoints, image2Keypoints);
+        std::swap(image1Descriptors, image2Descriptors);
     }
 
-    double searchRadius = 2.5 * minDist;
+    std::vector<std::vector<cv::DMatch>> matches;
+
+    _matcher->knnMatch(image1Descriptors, image2Descriptors, matches, /* k= */ 2);
+    std::vector<cv::Point2f> image1Points, image2Points;
+    image1Points.reserve(matches.size());
+    image2Points.reserve(matches.size());
+
     for (const auto& match: matches) {
-        if (match.distance <= searchRadius) {
-            onePoints.push_back(oneKeypoints.at(match.queryIdx).pt);
-            anotherPoints.push_back(anotherKeypoints.at(match.trainIdx).pt);
+        if (match[0].distance < matchingThreshold * match[1].distance) {
+            image1Points.push_back(image1Keypoints[match[0].queryIdx].pt);
+            image2Points.push_back(image2Keypoints[match[0].trainIdx].pt);
         }
     }
 
-    cv::Rect oneCropArea(0, 0, one.cols, one.rows);
-    cv::Rect anotherCropArea(0, 0, another.cols, another.rows);
+    cv::Mat H = cv::findHomography(image1Points, image2Points, cv::RANSAC);
 
-    double dy = 0;
-    int resultWidth = one.cols;
-    for (int i = 0; i < onePoints.size(); ++i) {
-        if (onePoints[i].x < resultWidth) {
-            oneCropArea.width = onePoints[i].x;
-
-            anotherCropArea.x = anotherPoints[i].x;
-            anotherCropArea.width = another.cols - anotherCropArea.x;
-
-            dy = onePoints[i].y - anotherPoints[i].y;
-            resultWidth = onePoints[i].x;
-        }
-    }
-
-    cv::Mat oneResult = one(oneCropArea);
-    cv::Mat anotherResult = another(anotherCropArea);
-
-    int maxHeight = std::max(oneResult.rows, anotherResult.rows);
-    int maxWidth = oneResult.cols + anotherResult.cols;
-
-    cv::Mat result( /* rows= */ maxHeight + abs(dy), /* cols= */ maxWidth, CV_8UC3);
-
-    if (dy > 0) {
-        oneResult.copyTo(result(cv::Rect(0, 0, oneResult.cols, oneResult.rows)));
-        anotherResult.copyTo(result(cv::Rect(oneResult.cols, abs(dy), anotherResult.cols, anotherResult.rows)));
-    } else {
-        oneResult.copyTo(result(cv::Rect(0, abs(dy), oneResult.cols, oneResult.rows)));
-        anotherResult.copyTo(result(cv::Rect(oneResult.cols, 0, anotherResult.cols, anotherResult.rows)));
-    }
+    cv::Mat result;
+    cv::warpPerspective(image1, result, H, cv::Size(image1.cols + image2.cols, std::max(image1.rows, image2.rows)));
+    cv::Mat half(result, cv::Rect(0, 0, image2.cols, image2.rows));
+    image2.copyTo(half);
 
     out = result;
 }
 
-void ImageStitcher::stitch(const std::vector<cv::Mat>& images, cv::Mat& out) const {
+void ImageStitcher::stitchVertically(const std::vector<cv::Mat>& images, cv::Mat& out) const {
     if (images.empty()) {
         return;
     }
 
-    cv::Mat current = images[0].t();
+    cv::Mat current;
+    cv::rotate(images[0], current, cv::ROTATE_90_COUNTERCLOCKWISE);
     for (size_t i = 1; i < images.size(); i++) {
-        // out is already transposed.
-        stitchHorizontally(current, images[i].t(), current);
+        cv::Mat t;
+        cv::rotate(images[i], t, cv::ROTATE_90_COUNTERCLOCKWISE);
+        stitchHorizontally(current, t, current);
     }
 
-    out = current.t();
+    cv::rotate(current, out, cv::ROTATE_90_CLOCKWISE);
 }

@@ -84,7 +84,7 @@ There are currently 2 camera models implemented in stitching pipeline.
   cv::detail::BundleAdjusterAffine cv::detail::BundleAdjusterAffinePartial cv::AffineWarper
 
 Homography model is useful for creating photo panoramas captured by camera,
-while affine-based model can be used to stitch scans and object captured by
+while affine-based model can be used to stitchVertically scans and object captured by
 specialized devices. Use @ref cv::Stitcher::create to get preconfigured pipeline for one
 of those models.
 
@@ -177,7 +177,7 @@ public:
     /** @brief Creates a Stitcher configured in one of the stitching modes.
 
     @param mode Scenario for stitcher operation. This is usually determined by source of images
-    to stitch and their transformation. Default parameters will be chosen for operation in given
+    to stitchVertically and their transformation. Default parameters will be chosen for operation in given
     scenario.
     @return Stitcher class instance.
      */
@@ -251,7 +251,7 @@ public:
     /** @brief These functions try to match the given images and to estimate rotations of each camera.
 
     @note Use the functions only if you're aware of the stitching pipeline, otherwise use
-    Stitcher::stitch.
+    Stitcher::stitchVertically.
 
     @param images Input images.
     @param masks Masks for each input image specifying where to look for keypoints (optional).
@@ -280,7 +280,7 @@ public:
     before.
 
     @note Use the functions only if you're aware of the stitching pipeline, otherwise use
-    Stitcher::stitch.
+    Stitcher::stitchVertically.
 
     @param images Input images.
     @param pano Final pano.
@@ -290,7 +290,7 @@ public:
 
     /** @overload */
     CV_WRAP Status stitch(InputArrayOfArrays images, OutputArray pano);
-    /** @brief These functions try to stitch the given images.
+    /** @brief These functions try to stitchVertically the given images.
 
     @param images Input images.
     @param masks Masks for each input image specifying where to look for keypoints (optional).

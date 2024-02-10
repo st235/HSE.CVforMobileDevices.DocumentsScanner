@@ -35,5 +35,5 @@ JNIEXPORT void JNICALL Java_github_com_st235_documentscanner_utils_documents_Ima
         matricesIn.push_back(matIn);
     }
     env->ReleaseLongArrayElements(images,  rawMatPointers, 0);
-    ptr->stitch(matricesIn, matrixOut);
+    ptr->stitchVertically(matricesIn, matrixOut);
 }
