@@ -4,8 +4,10 @@ import android.content.Context
 import github.com.st235.documentscanner.domain.CropInteractor
 import github.com.st235.documentscanner.domain.DocumentsCompositionInteractor
 import github.com.st235.documentscanner.domain.EditorInteractor
+import github.com.st235.documentscanner.domain.FeedInteractor
 import github.com.st235.documentscanner.utils.documents.DocumentScanner
 import github.com.st235.documentscanner.presentation.screens.composer.DocumentsComposerViewModel
+import github.com.st235.documentscanner.presentation.screens.feed.FeedScreenViewModel
 import github.com.st235.documentscanner.utils.BitmapWriter
 import github.com.st235.documentscanner.utils.DocumentsNameGenerator
 import github.com.st235.documentscanner.utils.LocalUriLoader
@@ -24,6 +26,8 @@ private val viewModelsModule = module {
 
     viewModel { DocumentsComposerViewModel(get(), get(), get()) }
 
+    viewModel { FeedScreenViewModel(get()) }
+
 }
 
 private val domainModule = module {
@@ -33,6 +37,8 @@ private val domainModule = module {
     factory { DocumentsCompositionInteractor(get(), get(), get(), get(), get(), get()) }
 
     factory { EditorInteractor(get()) }
+
+    factory { FeedInteractor(get()) }
 
 }
 

@@ -8,7 +8,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -23,9 +22,10 @@ import github.com.st235.documentscanner.presentation.screens.composer.overview.D
 import github.com.st235.documentscanner.presentation.screens.composer.cropper.DocumentCropperScreen
 import github.com.st235.documentscanner.presentation.screens.composer.editor.DocumentEditor
 import github.com.st235.documentscanner.presentation.screens.feed.FeedScreen
+import github.com.st235.documentscanner.presentation.screens.feed.FeedScreenViewModel
 import org.koin.androidx.compose.koinViewModel
 
-class NavigatonActivity : ComponentActivity() {
+class NavigationActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -37,7 +37,7 @@ class NavigatonActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     AppNavHost(
-                        startDestination = Screen.DocumentComposer.route,
+                        startDestination = Screen.DocumentsFeed.route,
                         navController = rememberNavController()
                     )
                 }
@@ -51,7 +51,8 @@ class NavigatonActivity : ComponentActivity() {
         navController: NavHostController,
         modifier: Modifier = Modifier,
     ) {
-        val viewModel = koinViewModel<DocumentsComposerViewModel>()
+        val feedScreenViewModel = koinViewModel<FeedScreenViewModel>()
+        val documentsComposerViewModel = koinViewModel<DocumentsComposerViewModel>()
 
         NavHost(
             startDestination = startDestination,
@@ -60,6 +61,7 @@ class NavigatonActivity : ComponentActivity() {
         ) {
             composable(Screen.DocumentsFeed.route) {
                 FeedScreen(
+                    viewModel = feedScreenViewModel,
                     navController = navController,
                     modifier = modifier
                 )
@@ -71,7 +73,7 @@ class NavigatonActivity : ComponentActivity() {
 
                 composable(Screen.DocumentComposer.Overview.route) {
                     DocumentCompositionOverviewScreen(
-                        sharedViewModel = viewModel,
+                        sharedViewModel = documentsComposerViewModel,
                         navController = navController,
                         modifier = modifier
                     )
@@ -79,7 +81,7 @@ class NavigatonActivity : ComponentActivity() {
 
                 composable(Screen.DocumentComposer.Cropper.route) {
                     DocumentCropperScreen(
-                        sharedViewModel = viewModel,
+                        sharedViewModel = documentsComposerViewModel,
                         navController = navController,
                         modifier = modifier
                     )
@@ -95,7 +97,7 @@ class NavigatonActivity : ComponentActivity() {
 
                     DocumentEditor(
                         documentId = documentId,
-                        sharedViewModel = viewModel,
+                        sharedViewModel = documentsComposerViewModel,
                         navController = navController,
                         modifier = modifier
                     )

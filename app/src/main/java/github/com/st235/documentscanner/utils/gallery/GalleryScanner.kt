@@ -25,13 +25,16 @@ class GalleryScanner(
     @WorkerThread
     fun queryImages(
         album: String = "%",
-        page: Int,
-        limit: Int
+        page: Int? = null,
+        limit: Int? = null,
     ): List<Uri> {
+        if ((page == null && limit != null) ||
+            (page != null && limit == null)) {
+            throw IllegalArgumentException("If provided both page and limit should not be null.")
+        }
+
         val selection = "${MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME} LIKE ?"
         val selectionArgs = arrayOf(album)
-
-        val offset = page * limit
 
         val sortByColumn = MediaStore.Images.ImageColumns.DATE_TAKEN
 
@@ -52,8 +55,11 @@ class GalleryScanner(
                     ContentResolver.QUERY_SORT_DIRECTION_DESCENDING
                 )
 
-                putInt(ContentResolver.QUERY_ARG_LIMIT, limit)
-                putInt(ContentResolver.QUERY_ARG_OFFSET, offset)
+                if (page != null && limit != null) {
+                    val offset = page * limit
+                    putInt(ContentResolver.QUERY_ARG_LIMIT, limit)
+                    putInt(ContentResolver.QUERY_ARG_OFFSET, offset)
+                }
             }
             contentResolver.query(
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
@@ -62,12 +68,18 @@ class GalleryScanner(
                 null
             )
         } else {
+            var query = "$sortByColumn DESC"
+            if (page != null && limit != null) {
+                val offset = page * limit
+                query += " LIMIT $limit OFFSET $offset"
+            }
+
             contentResolver.query(
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                 DEFAULT_PROJECTION,
                 selection,
                 selectionArgs,
-                "$sortByColumn DESC LIMIT $limit OFFSET $offset"
+                query
             )
         }
 

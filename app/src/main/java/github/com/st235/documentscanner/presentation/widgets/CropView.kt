@@ -27,6 +27,7 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
+import kotlin.math.sqrt
 
 @Composable
 fun CropView(
@@ -37,10 +38,12 @@ fun CropView(
     cornerColor: Color = Color.White,
     cornerRadius: Dp = 8f.dp,
     cornerTouchRadius: Dp = 32f.dp,
+    safeAreaPadding: Dp = 32f.dp,
     onCropAreaChanged: (CropArea) -> Unit = {}
 ) {
     val cornerRadiusPx = with(LocalDensity.current) { cornerRadius.toPx() }
     val cornerTouchRadiusPx = with(LocalDensity.current) { cornerTouchRadius.toPx() }
+    val safeAreaPaddingPx = with(LocalDensity.current) { safeAreaPadding.toPx() }
 
     val dragController by remember { mutableStateOf(CropViewDragController()) }
 
@@ -55,12 +58,14 @@ fun CropView(
         a < 0 && b > 0 && c > 0
     }
 
-    dragController.imageCropArea = if (!isConvexHull || imageCroppedArea == CropArea.ALL) {
+    val isBigEnough = imageCroppedArea.checkIfIsBigEnough(cornerTouchRadiusPx * 2)
+
+    dragController.imageCropArea = if (!isBigEnough || !isConvexHull || imageCroppedArea == CropArea.ALL) {
         CropArea(
-            topLeft = Offset(0f, 0f),
-            topRight = Offset(image.width.toFloat(), 0f),
-            bottomRight = Offset(image.width.toFloat(), image.height.toFloat()),
-            bottomLeft = Offset(0f, image.height.toFloat()),
+            topLeft = Offset(safeAreaPaddingPx, safeAreaPaddingPx),
+            topRight = Offset(image.width.toFloat() - safeAreaPaddingPx, safeAreaPaddingPx),
+            bottomRight = Offset(image.width.toFloat() - safeAreaPaddingPx, image.height.toFloat() - safeAreaPaddingPx),
+            bottomLeft = Offset(safeAreaPaddingPx, image.height.toFloat() - safeAreaPaddingPx),
         )
     } else {
         imageCroppedArea
@@ -209,6 +214,19 @@ data class CropArea(
             bottomRight = Offset.Zero,
         )
     }
+}
+
+fun CropArea.checkIfIsBigEnough(radius: Float): Boolean {
+    return getDistance(topLeft, bottomLeft) > radius &&
+            getDistance(topLeft, topRight) > radius &&
+            getDistance(topLeft, bottomRight) > radius &&
+            getDistance(bottomLeft, topRight) > radius &&
+            getDistance(bottomLeft, bottomRight) > radius &&
+            getDistance(topRight, bottomRight) > radius
+}
+
+private fun getDistance(a: Offset, b: Offset): Float {
+    return sqrt((a.x - b.x).pow(2) + (a.y - b.y).pow(2))
 }
 
 private fun CropArea.toCanvasCoordinates(scaleFactor: Float): CropArea {

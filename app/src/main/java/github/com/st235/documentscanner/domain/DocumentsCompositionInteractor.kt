@@ -83,7 +83,7 @@ class DocumentsCompositionInteractor(
 
         gallerySaver.save(
             title = nameGenerator.generateName(),
-            album = "Document Scans",
+            album = Config.ALBUM_SCANS,
             source = finalDocument
         )
     }

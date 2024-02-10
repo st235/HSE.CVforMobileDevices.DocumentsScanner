@@ -33,8 +33,8 @@ import coil.compose.AsyncImage
 @Composable
 fun DocumentPreview(
     document: Uri,
-    title: String,
     modifier: Modifier = Modifier,
+    title: String? = null,
     textColor: Color = MaterialTheme.colorScheme.onSurface,
     borderColor: Color = MaterialTheme.colorScheme.surface,
     cornerRadius: Dp = 16.dp,
@@ -63,19 +63,24 @@ fun DocumentPreview(
                 modifier = Modifier
                     .fillMaxSize()
             )
-            Text(
-                text = title,
-                color = textColor,
-                fontWeight = FontWeight.Bold,
-                fontSize = 12.sp,
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(horizontal = 12.dp, vertical = 12.dp)
-                    .drawBehind {
-                        drawRoundRect(borderColor, cornerRadius = CornerRadius(cornerRadiusPx, cornerRadiusPx))
-                    }
-                    .padding(horizontal = 8.dp, vertical = 2.dp)
-            )
+            if (title != null) {
+                Text(
+                    text = title,
+                    color = textColor,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 12.sp,
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(horizontal = 12.dp, vertical = 12.dp)
+                        .drawBehind {
+                            drawRoundRect(
+                                borderColor,
+                                cornerRadius = CornerRadius(cornerRadiusPx, cornerRadiusPx)
+                            )
+                        }
+                        .padding(horizontal = 8.dp, vertical = 2.dp)
+                )
+            }
         }
     }
 }

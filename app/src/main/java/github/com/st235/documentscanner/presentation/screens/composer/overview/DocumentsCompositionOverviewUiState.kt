@@ -11,7 +11,7 @@ data class DocumentsCompositionOverviewUiState(
 ) {
     companion object {
         val EMPTY = DocumentsCompositionOverviewUiState(
-            isLoading = true,
+            isLoading = false,
             isFinished = false,
             shouldStitch = false,
             shouldAddMoreDocuments = true,

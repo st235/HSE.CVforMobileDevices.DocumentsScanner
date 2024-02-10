@@ -6,6 +6,7 @@ import androidx.compose.foundation.systemGestureExclusion
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -25,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import github.com.st235.documentscanner.R
+import github.com.st235.documentscanner.presentation.base.theme.globalOverlayColor
 import github.com.st235.documentscanner.presentation.screens.composer.DocumentsComposerViewModel
 import github.com.st235.documentscanner.presentation.widgets.CropArea
 import github.com.st235.documentscanner.presentation.widgets.CropView
@@ -60,6 +62,17 @@ fun DocumentCropperScreen(
                             stringResource(id = R.string.document_cropper_title),
                             fontWeight = FontWeight.Medium
                         )
+                    },
+                    navigationIcon = {
+                        if (navController.previousBackStackEntry != null) {
+                            IconButton(onClick = { navController.navigateUp() }) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_close_24),
+                                    tint = MaterialTheme.colorScheme.onPrimary,
+                                    contentDescription = null
+                                )
+                            }
+                        }
                     }
                 )
             },
@@ -84,6 +97,7 @@ fun DocumentCropperScreen(
                 CropView(
                     image = document,
                     imageCroppedArea = corners,
+                    overlayColor = globalOverlayColor,
                     modifier = Modifier
                         .padding(paddings)
                         .fillMaxSize()

@@ -34,7 +34,7 @@ bool ContourDocumentScanner::findCorners(const cv::Mat& image,
         double archLength = cv::arcLength(contour, /* closed= */ true);
 
         approxCurve.clear();
-        cv::approxPolyDP(contour, approxCurve, 0.02 * archLength, /* closed= */ true);
+        cv::approxPolyDP(contour, approxCurve, 0.1 * archLength, /* closed= */ true);
 
         if (approxCurve.size() == 4) {
             break;

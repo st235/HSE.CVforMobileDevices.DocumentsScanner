@@ -1,5 +1,6 @@
 package github.com.st235.documentscanner.presentation.screens.composer.overview
 
+import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -36,6 +37,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -68,6 +70,7 @@ import github.com.st235.documentscanner.R
 import github.com.st235.documentscanner.presentation.screens.Screen
 import github.com.st235.documentscanner.presentation.screens.composer.DocumentsComposerViewModel
 import github.com.st235.documentscanner.presentation.widgets.DocumentPreview
+import github.com.st235.documentscanner.presentation.widgets.LoadingView
 import github.com.st235.documentscanner.utils.createTempUri
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -112,75 +115,102 @@ fun DocumentCompositionOverviewScreen(
             }
         }
 
-    Scaffold(
-        modifier = modifier,
-        topBar = {
-            TopAppBar(
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                ),
-                title = {
-                    Text(
-                        stringResource(id = R.string.document_overview_screen_title),
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-            )
-        },
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                icon = {
-                    Icon(
-                        painterResource(R.drawable.ic_save_24),
-                        contentDescription = null
-                    )
-                },
-                text = { Text(text = stringResource(R.string.document_overview_save_button)) },
-                onClick = { sharedViewModel.save() }
-            )
-        }
-    ) { paddings ->
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            modifier = Modifier
-                .padding(paddings)
-                .fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            item {
-                FilePickUpButton(
-                    onCameraClick = {
-                        if (!isCameraPermissionGranted(context)) {
-                            cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA)
-                        } else {
-                            cameraPermissionUri = context.createTempUri()
-                            cameraLauncher.launch(cameraPermissionUri)
-                        }
-                    },
-                    onGalleryClick = {
-                        galleryLauncher.launch(
-                            PickVisualMediaRequest(
-                                ActivityResultContracts.PickVisualMedia.ImageAndVideo
-                            )
+    LoadingView(isLoading = state.isLoading) {
+        Scaffold(
+            modifier = modifier,
+            topBar = {
+                TopAppBar(
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    ),
+                    title = {
+                        Text(
+                            stringResource(id = R.string.document_overview_screen_title),
+                            fontWeight = FontWeight.Medium
                         )
+                    },
+                    navigationIcon = {
+                        if (navController.previousBackStackEntry != null) {
+                            IconButton(onClick = { navController.navigateUp() }) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_arrow_back_24),
+                                    tint = MaterialTheme.colorScheme.onPrimary,
+                                    contentDescription = null
+                                )
+                            }
+                        }
                     }
+                )
+            },
+            floatingActionButton = {
+                val shouldStitch = state.shouldStitch
+
+                val iconRes = if (shouldStitch) {
+                    R.drawable.ic_healing_24
+                } else {
+                    R.drawable.ic_save_24
+                }
+
+                val textRes = if (shouldStitch) {
+                    R.string.document_overview_stitch_and_save_button
+                } else {
+                    R.string.document_overview_save_button
+                }
+
+                ExtendedFloatingActionButton(
+                    icon = {
+                        Icon(
+                            painterResource(iconRes),
+                            contentDescription = null
+                        )
+                    },
+                    text = { Text(text = stringResource(textRes)) },
+                    onClick = { sharedViewModel.save() }
                 )
             }
+        ) { paddings ->
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                modifier = Modifier
+                    .padding(paddings)
+                    .fillMaxSize(),
+                contentPadding = PaddingValues(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                item {
+                    FilePickUpButton(
+                        onCameraClick = {
+                            if (!isCameraPermissionGranted(context)) {
+                                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                            } else {
+                                cameraPermissionUri = context.createTempUri()
+                                cameraLauncher.launch(cameraPermissionUri)
+                            }
+                        },
+                        onGalleryClick = {
+                            galleryLauncher.launch(
+                                PickVisualMediaRequest(
+                                    ActivityResultContracts.PickVisualMedia.ImageAndVideo
+                                )
+                            )
+                        }
+                    )
+                }
 
-            items(state.pages) { page ->
-                DocumentPreview(
-                    document = page.uri,
-                    title = stringResource(
-                        id = R.string.document_overview_document_preview_template,
-                        page.id
-                    ),
-                    onClick = {
-                        navController.navigate(Screen.DocumentComposer.Editor.create(page.id))
-                    }
-                )
+                items(state.pages) { page ->
+                    DocumentPreview(
+                        document = page.uri,
+                        title = stringResource(
+                            id = R.string.document_overview_document_preview_template,
+                            page.id
+                        ),
+                        onClick = {
+                            navController.navigate(Screen.DocumentComposer.Editor.create(page.id))
+                        }
+                    )
+                }
             }
         }
     }
@@ -259,14 +289,7 @@ fun FilePickUpButton(
     }
 }
 
-private fun isCameraPermissionGranted(context: Context): Boolean =
-    isPermissionGranted(android.Manifest.permission.CAMERA, context)
-
-private fun isWriteExternalStoragePermissionGranted(context: Context): Boolean =
-    isPermissionGranted(android.Manifest.permission.WRITE_EXTERNAL_STORAGE, context)
-
-private fun isPermissionGranted(permission: String, context: Context): Boolean {
-    return ContextCompat.checkSelfPermission(context, permission) ==
+private fun isCameraPermissionGranted(context: Context): Boolean {
+    return ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
             PackageManager.PERMISSION_GRANTED
 }
-
