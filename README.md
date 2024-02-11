@@ -39,7 +39,16 @@ The changes are similar to the code below:
 
 ### Basic Flow
 
-#### Gallery
+The primary use-case consist of multiple steps:
+1. Loading an image (or video) from camera or gallery
+   1.2. If there are multiple images then **stitching** is happening
+2. Documents automatic corners detection, and cropping
+3. Editing the document (applying visual filters if necessary)
+4. Saving the file to gallery
+
+You can find below demo of all steps from this flow.
+
+#### Loading from Gallery
 
 | Documents Picker                                      | Documents Cropper                                           | Documents Editor                                          |
 |-------------------------------------------------------|-------------------------------------------------------------|-----------------------------------------------------------|
@@ -53,7 +62,7 @@ You can find Youtube Demos below:
 
 _▶️ Youtube Demo_: if you cannot open the video from the section above, please, refer to [DocLens Youtube Playlist section](#doclens-youtube-playlist).
 
-#### Camera
+#### Loading from Camera
 
 | Camera                                                                                                 |
 |--------------------------------------------------------------------------------------------------------|
@@ -61,7 +70,7 @@ _▶️ Youtube Demo_: if you cannot open the video from the section above, plea
 
 _▶️ Youtube Demo_: if you cannot open the video from the section above, please, refer to [DocLens Youtube Playlist section](#doclens-youtube-playlist).
 
-#### Landscape Scanning
+#### Handling landscape images
 
 | Landscape Scanning                                                                                                 |
 |--------------------------------------------------------------------------------------------------------------------|
@@ -98,7 +107,9 @@ _▶️ Youtube Demo_: if you cannot open the video from the section above, plea
 
 ### Image Stitching
 
-Image stitching 
+Image stitching logic can be located in [`ImageStitcher[.h/.cpp]`](./app/src/main/cpp/processor/ImageStitcher.cpp).
+
+The features are extracted using [SIFT](https://docs.opencv.org/3.4/da/df5/tutorial_py_sift_intro.html) and then are matched using [`FlannBasedMatcher`](https://docs.opencv.org/4.9.0/dc/de2/classcv_1_1FlannBasedMatcher.html).
 
 | Stitching Documents                                                                                                 | Stitching Newspaper                                                                                                 |
 |---------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|
@@ -235,21 +246,31 @@ Videos from the playlist are:
 
 > 0-5: Loading photos from a gallery and saving the results of transformation are supported
 
+✅ See [Basic Flow section](#basic-flow).
 
+> 0-5: Loading videos is supported
+>
+> 0-9: Choice of the best video frame from a sequence of frames is supported
 
-0-5: Loading videos is supported
+✅ See [Scanning Video section](#scanning-video).
 
-0-9: Choice of the best video frame from a sequence of frames is supported
+> 0-5: Manual selection of four corners for geometric transformation of scanned page is supported
+> 
+> 0-10: Automatic selection of four corners for geometric transformation of scanned page is supported
 
-0-5: Manual selection of four corners for geometric transformation of scanned page is supported
+✅ See [Basic Flow section](#basic-flow) but the functionality has been shown on **almost every** demonstration videos.
 
-0-10: Automatic selection of four corners for geometric transformation of scanned page is supported
+> 0-15: At least 3 different algorithms are implemented for at least one of the following operations: binarization, image filtering, noise removal, contrast enhancement
 
-0-15: At least 3 different algorithms are implemented for at least one of the following operations: binarization, image filtering, noise removal, contrast enhancement
+✅ See [Editor section](#editor).
 
-0-5: Stitching of several photos of very-large document is implemented
+> 0-5: Stitching of several photos of very-large document is implemented
 
-0-16: Implementation of algorithms outside of OpenCV that take into account specifics of scanned documents, for example, development of the char_threshold segmentation, contrast enhancement for two-mode histogram, etc. The usage of such algorithms should be clearly stated in README
+✅ See [Image stitching section](#image-stitching).
+ 
+> 0-16: Implementation of algorithms outside of OpenCV that take into account specifics of scanned documents, for example, development of the char_threshold segmentation, contrast enhancement for two-mode histogram, etc. The usage of such algorithms should be clearly stated in README
+
+✅ See [Custom Algorithms section](#custom-algorithms).
 
 ### More document examples
 
