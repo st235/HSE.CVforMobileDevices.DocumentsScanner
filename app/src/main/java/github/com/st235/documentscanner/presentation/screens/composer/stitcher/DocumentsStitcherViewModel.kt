@@ -1,4 +1,4 @@
-package github.com.st235.documentscanner.presentation.screens.composer.overview
+package github.com.st235.documentscanner.presentation.screens.composer.stitcher
 
 import android.net.Uri
 import github.com.st235.documentscanner.domain.DocumentsStitchingInteractor

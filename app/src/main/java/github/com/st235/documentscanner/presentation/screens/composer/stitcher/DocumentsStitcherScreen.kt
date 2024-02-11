@@ -1,4 +1,4 @@
-package github.com.st235.documentscanner.presentation.screens.composer.overview
+package github.com.st235.documentscanner.presentation.screens.composer.stitcher
 
 import android.Manifest
 import android.content.Context
@@ -206,7 +206,9 @@ fun DocumentCompositionOverviewScreen(
                             id = R.string.documents_stitcher_screen_document_preview_template,
                             page.id
                         ),
-                        onClick = { }
+                        onClick = {
+                            navController.navigate(Screen.DocumentPreview.create(page.uri))
+                        }
                     )
                 }
             }

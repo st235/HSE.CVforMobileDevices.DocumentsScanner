@@ -118,7 +118,9 @@ fun FeedScreen(
             items(pages) { page ->
                 DocumentPreview(
                     document = page,
-                    onClick = {}
+                    onClick = {
+                        navController.navigate(Screen.DocumentPreview.create(page))
+                    }
                 )
             }
         }

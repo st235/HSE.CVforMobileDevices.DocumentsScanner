@@ -5,6 +5,8 @@
     <string name="feed_screen_empty">Unfortunately, there are no saved documents. It is time to create a new one :-)</string>
     <string name="feed_screen_start_flow">Scan</string>
 
+    <string name="preview_screen_title">Document Preview</string>
+
     <string name="documents_stitcher_screen_title">Documents Stitcher</string>
     <string name="documents_stitcher_screen_pick_media">Pick media</string>
     <string name="documents_stitcher_screen_open_camera">Take a picture</string>

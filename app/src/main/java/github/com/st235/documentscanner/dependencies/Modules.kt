@@ -8,7 +8,7 @@ import github.com.st235.documentscanner.domain.FeedInteractor
 import github.com.st235.documentscanner.utils.documents.DocumentScanner
 import github.com.st235.documentscanner.presentation.screens.composer.editor.DocumentsEditorViewModel
 import github.com.st235.documentscanner.presentation.screens.composer.cropper.DocumentCropperViewModel
-import github.com.st235.documentscanner.presentation.screens.composer.overview.DocumentsStitcherViewModel
+import github.com.st235.documentscanner.presentation.screens.composer.stitcher.DocumentsStitcherViewModel
 import github.com.st235.documentscanner.presentation.screens.feed.FeedScreenViewModel
 import github.com.st235.documentscanner.utils.BitmapWriter
 import github.com.st235.documentscanner.utils.DocumentsNameGenerator

@@ -18,14 +18,15 @@ import androidx.navigation.navArgument
 import androidx.navigation.navigation
 import github.com.st235.documentscanner.presentation.base.theme.DocumentScannerTheme
 import github.com.st235.documentscanner.presentation.screens.Screen
-import github.com.st235.documentscanner.presentation.screens.composer.editor.DocumentsEditorViewModel
-import github.com.st235.documentscanner.presentation.screens.composer.overview.DocumentCompositionOverviewScreen
 import github.com.st235.documentscanner.presentation.screens.composer.cropper.DocumentCropperScreen
 import github.com.st235.documentscanner.presentation.screens.composer.cropper.DocumentCropperViewModel
 import github.com.st235.documentscanner.presentation.screens.composer.editor.DocumentEditor
-import github.com.st235.documentscanner.presentation.screens.composer.overview.DocumentsStitcherViewModel
+import github.com.st235.documentscanner.presentation.screens.composer.editor.DocumentsEditorViewModel
+import github.com.st235.documentscanner.presentation.screens.composer.stitcher.DocumentCompositionOverviewScreen
+import github.com.st235.documentscanner.presentation.screens.composer.stitcher.DocumentsStitcherViewModel
 import github.com.st235.documentscanner.presentation.screens.feed.FeedScreen
 import github.com.st235.documentscanner.presentation.screens.feed.FeedScreenViewModel
+import github.com.st235.documentscanner.presentation.screens.preview.DocumentPreviewScreen
 import org.koin.androidx.compose.koinViewModel
 
 class NavigationActivity : ComponentActivity() {
@@ -64,6 +65,22 @@ class NavigationActivity : ComponentActivity() {
 
                 FeedScreen(
                     viewModel = feedScreenViewModel,
+                    navController = navController,
+                    modifier = modifier
+                )
+            }
+
+            composable(
+                route = Screen.DocumentPreview.route,
+                arguments = listOf(navArgument(Screen.DocumentPreview.URI) {
+                    type = NavType.StringType
+                })
+            ) { backStackEntry ->
+                val encodedUri = backStackEntry.arguments?.getString(Screen.DocumentPreview.URI) ?: ""
+                val uri = Uri.parse(encodedUri)
+
+                DocumentPreviewScreen(
+                    documentUri = uri,
                     navController = navController,
                     modifier = modifier
                 )
