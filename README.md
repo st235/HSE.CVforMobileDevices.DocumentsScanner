@@ -4,9 +4,9 @@
 
 A simple but robust documents scanner.
 
-| Feed                               | Corners Detection                                    | Document Preview                                             |
-|------------------------------------|------------------------------------------------------|--------------------------------------------------------------|
-| ![Feed](./images/doclens_feed.png) | ![Corners Detection](./images/doclens_cropper_2.png) | ![Document Preview](./images/doclens_document_preview_2.png) |
+| Feed                               | Documents Selector/Stitcher                                     | Corners Detection                                    | Document Preview                                             |
+|------------------------------------|-----------------------------------------------------------------|------------------------------------------------------|--------------------------------------------------------------|
+| ![Feed](./images/doclens_feed.png) | ![Documents Selector/Stitcher](./images/doclens_stitcher_2.png) | ![Corners Detection](./images/doclens_cropper_2.png) | ![Document Preview](./images/doclens_document_preview_2.png) |
 
 
 ## Technologies
@@ -113,6 +113,8 @@ The editor supports multiple operations on images:
 
 The code for image processing can be found in [`ImageProcessor[.h/.cpp]`](./app/src/main/cpp/processor/ImageProcessor.cpp) or [`ImageProcess[.kt]`](./app/src/main/java/github/com/st235/documentscanner/utils/documents/ImageProcessor.kt).
 
+Moreover, the editor supports **UNDO** to the previous state. You can see the usage example of editor usage at the video demo below:
+
 | Editor                                                                                                 |
 |--------------------------------------------------------------------------------------------------------|
 | [![Editor](https://img.youtube.com/vi/F-SkYZSlXCA/0.jpg)](https://www.youtube.com/watch?v=F-SkYZSlXCA) |
@@ -121,11 +123,30 @@ _▶️ Youtube Demo_: if you cannot open the video from the section above, plea
 
 ### Custom Algorithms
 
-There are multiple algorithms implemented that helps to handle documents
+There are multiple algorithms implemented outside of OpenCV that helps to handle specifics of documents:
+- Char Threshold
+- Convex Hull Test
+- Hough Circles (_⚠️ this algorithm is not used in the final project as performs less efficiently than contour detection approach, though the logic can stil be found in [`HoughDocumentScanner[.h/.cpp]`](./app/src/main/cpp/scanner/HoughDocumentScanner.cpp)_)
 
 #### Char Threshold
 
-Char Threshold examples
+Char Threshold assumes that there background of the document is usually of bright gray or white colours,
+and this area corresponds to the large peak at high gray areas, while the characters from low gray areas (black)
+correspond to the foreground.
+
+```math
+histogram[threshold] * 100.0 < histogram[maximum] * (100.0 - Percent)
+```
+
+The image below should give you better understanding on how the algorithm works: 
+
+| Image                                             | Histogram                                      |
+|---------------------------------------------------|------------------------------------------------|
+| ![Image](./images/char_threshold_hist_image.jpeg) | ![Histogram](./images/char_threshold_hist.png) |
+
+You can find an implemented algorithm in [`ImageProcessor#CharThreshold`](./app/src/main/cpp/processor/ImageProcessor.cpp).
+
+See the examples on 
 
 | Char Threshold option in the Editor                                                | Document 1                                                  |
 |------------------------------------------------------------------------------------|-------------------------------------------------------------|
@@ -134,6 +155,9 @@ Char Threshold examples
 |  Document 2                                                 | Document 3                                                  |
 |-------------------------------------------------------------|-------------------------------------------------------------|
 | ![Document 2](./images/doclens_char_threshold_sample_2.jpg) | ![Document 3](./images/doclens_char_threshold_sample_3.jpg) |
+
+References:
+- [char_threshold, HALCON Operator Reference](https://www.mvtec.com/doc/halcon/13/en/char_threshold.html)
 
 
 #### Convex Hull Test
