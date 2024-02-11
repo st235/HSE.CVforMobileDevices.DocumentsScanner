@@ -17,7 +17,7 @@
     <string name="document_cropper_crop_button">Crop</string>
 
     <string name="document_editor_title">Modify</string>
-    <string name="document_editor_save">Apply</string>
+    <string name="document_editor_save">Save</string>
     <string name="document_editor_rotate_90_cw">Rotate 90 Clockwise</string>
     <string name="document_editor_binarisation">Binarise</string>
     <string name="document_editor_filter">Filter</string>

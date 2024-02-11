@@ -17,6 +17,18 @@ val ImageProcessor.Binarization.stringRes: Int
         }
     }
 
+val ImageProcessor.Binarization.isFavourite: Boolean
+    get() {
+        return when(this) {
+            ImageProcessor.Binarization.GLOBAL -> false
+            ImageProcessor.Binarization.ADAPTIVE_MEAN -> false
+            ImageProcessor.Binarization.ADAPTIVE_GAUSSIAN -> false
+            ImageProcessor.Binarization.OTSU -> false
+            ImageProcessor.Binarization.TRIANGLE -> false
+            ImageProcessor.Binarization.CHAR -> true
+        }
+    }
+
 @get:StringRes
 val ImageProcessor.Denoising.stringRes: Int
     get() {

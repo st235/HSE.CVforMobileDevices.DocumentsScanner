@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -50,6 +51,7 @@ import androidx.navigation.NavHostController
 import github.com.st235.documentscanner.R
 import github.com.st235.documentscanner.presentation.widgets.LoadingView
 import github.com.st235.documentscanner.utils.documents.ImageProcessor
+import github.com.st235.documentscanner.utils.isFavourite
 import github.com.st235.documentscanner.utils.stringRes
 import st235.com.github.flowlayout.compose.FlowLayout
 import st235.com.github.flowlayout.compose.FlowLayoutDirection
@@ -123,7 +125,7 @@ fun DocumentEditor(
                     ExtendedFloatingActionButton(
                         icon = {
                             Icon(
-                                painterResource(R.drawable.ic_done_24),
+                                painterResource(R.drawable.ic_save_24),
                                 contentDescription = null
                             )
                         },
@@ -185,25 +187,25 @@ fun ControlPanel(
         when (currentlyOpenPanel) {
             ControlPanels.BINARIZATION -> {
                 ControlPanelRow(
-                    items = ImageProcessor.Binarization.entries.map { it to stringResource(it.stringRes) },
+                    items = ImageProcessor.Binarization.entries.map { ControlPanelRawElementInfo(it, stringResource(it.stringRes), it.isFavourite) },
                     onClick = onBinarisationClick
                 )
             }
             ControlPanels.FILTER -> {
                 ControlPanelRow(
-                    items = ImageProcessor.Filter.entries.map { it to stringResource(it.stringRes) },
+                    items = ImageProcessor.Filter.entries.map { ControlPanelRawElementInfo(it, stringResource(it.stringRes)) },
                     onClick = onFilterClick
                 )
             }
             ControlPanels.CONTRAST -> {
                 ControlPanelRow(
-                    items = ImageProcessor.Contrast.entries.map { it to stringResource(it.stringRes) },
+                    items = ImageProcessor.Contrast.entries.map { ControlPanelRawElementInfo(it, stringResource(it.stringRes)) },
                     onClick = onContrastClick
                 )
             }
             ControlPanels.DENOISING -> {
                 ControlPanelRow(
-                    items = ImageProcessor.Denoising.entries.map { it to stringResource(it.stringRes) },
+                    items = ImageProcessor.Denoising.entries.map { ControlPanelRawElementInfo(it, stringResource(it.stringRes)) },
                     onClick = onDenoisingClick
                 )
             }
@@ -220,53 +222,48 @@ fun ControlPanel(
             ControlButton(
                 icon = painterResource(R.drawable.ic_rotate_90_degrees_cw_24),
                 text = stringResource(R.string.document_editor_rotate_90_cw),
-                contentColor = contentColor,
-                onClick = { onRotateClick() }
-            )
+                contentColor = contentColor
+            ) { onRotateClick() }
             ControlButton(
                 icon = painterResource(R.drawable.ic_invert_colors_24),
                 text = stringResource(R.string.document_editor_binarisation),
-                contentColor = contentColor,
-                onClick = {
-                    currentlyOpenPanel = calculateCurrentlyOpenControlPanel(
-                        currentlyOpenPanel,
-                        ControlPanels.BINARIZATION
-                    )
-                }
-            )
+                contentColor = contentColor
+            ) {
+                currentlyOpenPanel = calculateCurrentlyOpenControlPanel(
+                    currentlyOpenPanel,
+                    ControlPanels.BINARIZATION
+                )
+            }
             ControlButton(
                 icon = painterResource(R.drawable.ic_contrast_24),
                 text = stringResource(R.string.document_editor_contrast),
-                contentColor = contentColor,
-                onClick = {
-                    currentlyOpenPanel = calculateCurrentlyOpenControlPanel(
-                        currentlyOpenPanel,
-                        ControlPanels.CONTRAST
-                    )
-                }
-            )
+                contentColor = contentColor
+            ) {
+                currentlyOpenPanel = calculateCurrentlyOpenControlPanel(
+                    currentlyOpenPanel,
+                    ControlPanels.CONTRAST
+                )
+            }
             ControlButton(
                 icon = painterResource(R.drawable.ic_blur_on_24),
                 text = stringResource(R.string.document_editor_filter),
-                contentColor = contentColor,
-                onClick = {
-                    currentlyOpenPanel = calculateCurrentlyOpenControlPanel(
-                        currentlyOpenPanel,
-                        ControlPanels.FILTER
-                    )
-                }
-            )
+                contentColor = contentColor
+            ) {
+                currentlyOpenPanel = calculateCurrentlyOpenControlPanel(
+                    currentlyOpenPanel,
+                    ControlPanels.FILTER
+                )
+            }
             ControlButton(
                 icon = painterResource(R.drawable.ic_equalizer_24),
                 text = stringResource(R.string.document_editor_denoising),
-                contentColor = contentColor,
-                onClick = {
-                    currentlyOpenPanel = calculateCurrentlyOpenControlPanel(
-                        currentlyOpenPanel,
-                        ControlPanels.DENOISING
-                    )
-                }
-            )
+                contentColor = contentColor
+            ) {
+                currentlyOpenPanel = calculateCurrentlyOpenControlPanel(
+                    currentlyOpenPanel,
+                    ControlPanels.DENOISING
+                )
+            }
         }
     }
 }
@@ -280,9 +277,15 @@ private fun calculateCurrentlyOpenControlPanel(currentState: ControlPanels?,
     }
 }
 
+data class ControlPanelRawElementInfo<T>(
+    val id: T,
+    val localisation: String,
+    val isFavourite: Boolean = false
+)
+
 @Composable
 fun <T> ControlPanelRow(
-    items: List<Pair<T, String>>,
+    items: List<ControlPanelRawElementInfo<T>>,
     modifier: Modifier = Modifier,
     borderColor: Color = MaterialTheme.colorScheme.primaryContainer,
     textColor: Color = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -294,24 +297,37 @@ fun <T> ControlPanelRow(
         direction = FlowLayoutDirection.START,
         modifier = modifier.padding(8.dp)
     ) {
-        for ((id, localisation) in items) {
-            Text(
-                text = localisation,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium,
-                color = textColor,
+        for ((id, localisation, isFavourite) in items) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
-                    .focusable()
-                    .clickable { onClick(id) }
-                    .padding(vertical = 2.dp, horizontal = 4.dp)
-                    .drawBehind {
-                        drawRoundRect(
-                            borderColor,
-                            cornerRadius = CornerRadius(cornerRadiusPx, cornerRadiusPx)
-                        )
-                    }
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
-            )
+                .focusable()
+                .clickable { onClick(id) }
+                .padding(vertical = 2.dp, horizontal = 4.dp)
+                .drawBehind {
+                    drawRoundRect(
+                        borderColor,
+                        cornerRadius = CornerRadius(cornerRadiusPx, cornerRadiusPx)
+                    )
+                }
+                .padding(horizontal = 8.dp, vertical = 4.dp)) {
+                if (isFavourite) {
+                    Icon(
+                        painterResource(R.drawable.ic_star_24),
+                        contentDescription = null,
+                        tint = textColor,
+                        modifier = Modifier.width(16.dp).height(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                }
+
+                Text(
+                    text = localisation,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = textColor
+                )
+            }
         }
     }
 }
@@ -322,7 +338,6 @@ fun ControlButton(
     text: String,
     modifier: Modifier = Modifier,
     contentColor: Color = MaterialTheme.colorScheme.onSurface,
-    isEnabled: Boolean = true,
     onClick: () -> Unit = {},
 ) {
     Column(
