@@ -71,6 +71,25 @@ _▶️ Youtube Demo_: if you cannot open the video from the section above, plea
 
 ### Scanning Video
 
+As long as OpenCV for android does not support `mp4` containers (especially, `h264` encoding) as it missing `ffmpeg` backend,
+therefore extracting video frames functionality is implemented **outside of OpenCV** and then this frames are fed into **OpenCV** for 
+further analysis.
+
+To parse the video files [Android `MediaMetadataRetriever`](https://developer.android.com/reference/android/media/MediaMetadataRetriever) is used.
+There are 2 implementations of video extractors available at [`MetadataRetrieverWrapper`](./app/src/main/java/github/com/st235/documentscanner/utils/MetadataRetrieverWrapper.kt):
+- **TimestampVideoFramesIterator**: works on _Androids below [Pie](https://www.android.com/versions/pie-9-0/)_ and uses [`getFrameAtTime`](https://developer.android.com/reference/android/media/MediaMetadataRetriever#getFrameAtTime()).
+Works a bit slow, therefore is used only when there is no alternative.
+- **IndexVideoFramesIterator**: works on _Android P and above_ and uses [`getFrameAtIndex`](https://developer.android.com/reference/android/media/MediaMetadataRetriever#getFrameAtIndex(int)). Extraction performed this way works much faster
+then using `getFrameAtTime` API, therefore this algorithm is used where possible.
+
+[`KeyFrameDetector`](./app/src/main/java/github/com/st235/documentscanner/utils/documents/KeyFrameDetector.kt) then feeds extracted frames one-by-one to [the native code](./app/src/main/cpp/github_com_st235_documentscanner_utils_documents_KeyFrameDetector.cpp),
+where [`matchTemplate` from **OpenCV**](https://docs.opencv.org/3.4/df/dfb/group__imgproc__object.html#ga586ebfb0a7fb604b35a23d85391329be) is used to determine how similar two consecutive frames are.
+If the similarity falls below the threshold (which was tuned empirically and is **0.95**), then it means than new **different** interval in the video has started.
+At last, the longest interval is selected as an interval from where possible document would be extracted.
+
+Check out how to scan documents that are presented on video files in the video demo below:
+
+
 | Straightforward video file                                                                                                 | Video with noisy frames                                                                                                 |
 |----------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------|
 | [![Straightforward video file](https://img.youtube.com/vi/oSQlyA8RAWQ/0.jpg)](https://www.youtube.com/watch?v=oSQlyA8RAWQ) | [![Video with noisy frames](https://img.youtube.com/vi/9pOl3OzDWY4/0.jpg)](https://www.youtube.com/watch?v=9pOl3OzDWY4) |
