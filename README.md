@@ -98,6 +98,8 @@ _▶️ Youtube Demo_: if you cannot open the video from the section above, plea
 
 ### Image Stitching
 
+Image stitching 
+
 | Stitching Documents                                                                                                 | Stitching Newspaper                                                                                                 |
 |---------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|
 | [![Stitching Documents](https://img.youtube.com/vi/sPIgiG93lWM/0.jpg)](https://www.youtube.com/watch?v=sPIgiG93lWM) | [![Stitching Newspaper](https://img.youtube.com/vi/FpQYinaYS9g/0.jpg)](https://www.youtube.com/watch?v=FpQYinaYS9g) |
