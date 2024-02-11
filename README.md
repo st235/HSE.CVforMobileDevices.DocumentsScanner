@@ -146,7 +146,9 @@ The image below should give you better understanding on how the algorithm works:
 
 You can find an implemented algorithm in [`ImageProcessor#CharThreshold`](./app/src/main/cpp/processor/ImageProcessor.cpp).
 
-See the examples on 
+The algorithm can be applied in the `Editor/Binarisation` menu, the algorithm will be marked with a "star" sign. 
+
+See the examples on how to find an algorithm, and the results of applying it on the documents.
 
 | Char Threshold option in the Editor                                                | Document 1                                                  |
 |------------------------------------------------------------------------------------|-------------------------------------------------------------|
@@ -162,6 +164,26 @@ References:
 
 #### Convex Hull Test
 
+Convex Hull check assumes that it is impossible to take a picture of a document shape of which is not **convex**.
+
+![Convex vs. Non-Convex](./images/convex_vs_non_convex.jpg)
+
+To check whether 4-corners shape is a convex hull:
+1. Consider one of the points (**P**) (**top-left** in the project) against three others: the other points make a triangle (**ABC**).
+2. Verify that triangle formed by the rest of the points is **valid** (**A** is **bottom-right** corner, **B** is **top-right** corner, and **C** is **bottom-left**): check whether **the length** of cross-product of 2 vectors forming triangle is bigger than **0**,
+we don't care about the sign as it characterises how the points have been taken clockwise or counterclockwise.
+3. Move this point (**P**) into the barycentric coordinates of the triangle (**ABC**) and get (A0, B0, C0) coordinates.
+4.Check the point is within reasonable bounds by checking the signs of the corresponding coordinates (a < 0, b > 0, and c > 0, i.e. we are **outside** of the edge opposite to the vertex **A**, and inside the edges opposite to vertices **B** and **C**).
+
+![Barycentric Coordinates](./images/barycentric_coordinates.png)
+
+All the code for this test can be found inside [`CropView`](./app/src/main/java/github/com/st235/documentscanner/presentation/widgets/CropView.kt):
+- checkIfBarycentricCoordinatesValid
+- toBarycentric
+- dot
+
+Check out how this test works in a demo:
+
 | Convex Hull Check                                                                                                 |
 |-------------------------------------------------------------------------------------------------------------------|
 | [![Convex Hull Check](https://img.youtube.com/vi/X9YnKRJSHio/0.jpg)](https://www.youtube.com/watch?v=X9YnKRJSHio) |
@@ -173,7 +195,7 @@ _▶️ Youtube Demo_: if you cannot open the video from the section above, plea
 
 ### DocLens Youtube Playlist
 
-Plyalist with all demo videos is available here: https://www.youtube.com/playlist?list=PLucKuGqiOAE_hX1PhURkPTRjVaTCUKh3_
+Playlist with all demo videos is available here: [https://www.youtube.com/playlist?list=PLucKuGqiOAE_hX1PhURkPTRjVaTCUKh3_](https://www.youtube.com/playlist?list=PLucKuGqiOAE_hX1PhURkPTRjVaTCUKh3_)
 
 Videos from the playlist are:
 
