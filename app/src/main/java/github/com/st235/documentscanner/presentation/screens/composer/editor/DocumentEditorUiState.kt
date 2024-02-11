@@ -5,7 +5,6 @@ import android.graphics.Bitmap
 data class DocumentEditorUiState(
     val isLoading: Boolean,
     val isFinished: Boolean,
-    val documentId: Int,
     val previousDocument: Bitmap?,
     val currentDocument: Bitmap?
 ) {
@@ -13,7 +12,6 @@ data class DocumentEditorUiState(
         val EMPTY = DocumentEditorUiState(
             isLoading = true,
             isFinished = false,
-            documentId = 0,
             previousDocument = null,
             currentDocument = null
         )

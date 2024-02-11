@@ -25,7 +25,7 @@ class DocumentsNameGenerator(
 
     fun generateName(): String {
         val origin = dateFormat.format(calendar.time)
-        return context.resources.getString(R.string.document_overview_document_save_template, origin)
+        return context.resources.getString(R.string.documents_stitcher_screen_document_save_template, origin)
     }
 
 }

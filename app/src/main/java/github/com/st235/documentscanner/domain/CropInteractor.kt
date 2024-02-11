@@ -2,66 +2,39 @@ package github.com.st235.documentscanner.domain
 
 import android.graphics.Bitmap
 import android.net.Uri
+import github.com.st235.documentscanner.utils.BitmapWriter
 import github.com.st235.documentscanner.utils.LocalUriLoader
-import github.com.st235.documentscanner.utils.UriMimeTypeHandler
+import github.com.st235.documentscanner.utils.TempUriProvider
 import github.com.st235.documentscanner.utils.documents.DocumentScanner
-import github.com.st235.documentscanner.utils.documents.KeyFrameDetector
 
 class CropInteractor(
     private val documentScanner: DocumentScanner,
     private val localUriLoader: LocalUriLoader,
-    private val uriMimeTypeHandler: UriMimeTypeHandler,
-    private val keyFrameDetector: KeyFrameDetector,
+    private val tempUriProvider: TempUriProvider,
+    private val bitmapWriter: BitmapWriter,
 ) {
 
-    @Volatile
-    private var currentBitmap: Bitmap? = null
-
     @Synchronized
-    fun prepareBitmap(uri: Uri) {
-        val isVideo = uriMimeTypeHandler.isVideo(uri)
-        currentBitmap = if (isVideo) {
-            prepareVideoDocument(uri)
-        } else {
-            prepareImageDocument(uri)
-        }
+    fun prepareBitmap(uri: Uri): Bitmap {
+        return localUriLoader.load(uri) ?: throw IllegalStateException("Current bitmap is null")
     }
 
-    @Synchronized
-    private fun prepareImageDocument(uri: Uri): Bitmap? {
-        return localUriLoader.load(uri)
+    fun detectCorners(documentBitmap: Bitmap): DocumentScanner.Corners? {
+        return documentScanner.findCorners(documentBitmap)
     }
 
-    @Synchronized
-    private fun prepareVideoDocument(uri: Uri): Bitmap? {
-         return keyFrameDetector.getKeyFrame(uri)
-    }
-
-
-    fun detectCorners(): DocumentScanner.Corners? {
-        return documentScanner.findCorners(requireBitmap())
-    }
-
-    fun crop(corners: DocumentScanner.Corners?): Bitmap {
+    fun crop(documentBitmap: Bitmap, corners: DocumentScanner.Corners?): Bitmap {
         if (corners == null) {
-            return requireBitmap()
+            return documentBitmap
         }
 
-        return documentScanner.wrapPerspective(requireBitmap(), corners)
+        return documentScanner.wrapPerspective(documentBitmap, corners)
     }
 
-    @Synchronized
-    fun clear() {
-        currentBitmap = null
-    }
-
-    @Synchronized
-    fun requireBitmap(): Bitmap {
-        if (currentBitmap == null) {
-            throw IllegalStateException("Current bitmap is null")
-        }
-
-        return currentBitmap!!
+    fun save(croppedBitmap: Bitmap): Uri {
+        val tempUri = tempUriProvider.createRandomUri()
+        bitmapWriter.save(tempUri, croppedBitmap)
+        return tempUri
     }
 
 }

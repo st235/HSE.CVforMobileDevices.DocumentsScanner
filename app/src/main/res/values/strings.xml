@@ -5,14 +5,13 @@
     <string name="feed_screen_empty">Unfortunately, there are no saved documents. It is time to create a new one :-)</string>
     <string name="feed_screen_start_flow">Scan</string>
 
-    <string name="document_overview_screen_title">Document Creation Overview</string>
-    <string name="document_overview_screen_pick_media">Pick media</string>
-    <string name="document_overview_screen_open_camera">Take a picture</string>
-    <string name="document_overview_save_button">Save</string>
-    <string name="document_overview_stitch_and_save_button">Stitch\'n\'Save</string>
-
-    <string name="document_overview_document_preview_template">Page %d</string>
-    <string name="document_overview_document_save_template">Document Scan %s</string>
+    <string name="documents_stitcher_screen_title">Documents Stitcher</string>
+    <string name="documents_stitcher_screen_pick_media">Pick media</string>
+    <string name="documents_stitcher_screen_open_camera">Take a picture</string>
+    <string name="documents_stitcher_screen_proceed_button">Proceed</string>
+    <string name="documents_stitcher_screen_stitch_button">Stitch</string>
+    <string name="documents_stitcher_screen_document_preview_template">Page %d</string>
+    <string name="documents_stitcher_screen_document_save_template">Document Scan %s</string>
 
     <string name="document_cropper_title">Select Area To Crop</string>
     <string name="document_cropper_crop_button">Crop</string>

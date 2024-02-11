@@ -1,5 +1,6 @@
 package github.com.st235.documentscanner.presentation.screens.composer.editor
 
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -47,7 +48,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import github.com.st235.documentscanner.R
-import github.com.st235.documentscanner.presentation.screens.composer.DocumentsComposerViewModel
 import github.com.st235.documentscanner.presentation.widgets.LoadingView
 import github.com.st235.documentscanner.utils.documents.ImageProcessor
 import github.com.st235.documentscanner.utils.stringRes
@@ -57,21 +57,21 @@ import st235.com.github.flowlayout.compose.FlowLayoutDirection
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DocumentEditor(
-    documentId: Int,
-    sharedViewModel: DocumentsComposerViewModel,
+    documentUri: Uri,
+    viewModel: DocumentsEditorViewModel,
     navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
-    val state by sharedViewModel.documentEditorUiState.collectAsStateWithLifecycle()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     val document = state.currentDocument
 
-    LaunchedEffect(true) {
-        sharedViewModel.prepareDocumentForEditing(documentId)
+    LaunchedEffect("preparing_uri_for_editing") {
+        viewModel.prepareDocumentForEditing(documentUri)
     }
 
     if (state.isFinished) {
-        LaunchedEffect(true) {
+        LaunchedEffect("closing_view") {
             navController.popBackStack()
         }
     }
@@ -111,7 +111,7 @@ fun DocumentEditor(
                 ) {
                     if (canUndo) {
                         SmallFloatingActionButton(
-                            onClick = { sharedViewModel.undo() }
+                            onClick = { viewModel.undo() }
                         ) {
                             Icon(
                                 painterResource(R.drawable.ic_undo_24),
@@ -128,17 +128,17 @@ fun DocumentEditor(
                             )
                         },
                         text = { Text(text = stringResource(R.string.document_editor_save)) },
-                        onClick = { sharedViewModel.modifyDocument(documentId, document) },
+                        onClick = { viewModel.saveDocument() },
                     )
                 }
             },
             bottomBar = {
                 ControlPanel(
-                    onRotateClick = { sharedViewModel.rotate90Clockwise(document) },
-                    onBinarisationClick = { sharedViewModel.binarise(document, it) },
-                    onFilterClick = { sharedViewModel.filter(document, it) },
-                    onContrastClick = { sharedViewModel.contrast(document, it) },
-                    onDenoisingClick = { sharedViewModel.denoising(document, it) },
+                    onRotateClick = { viewModel.rotate90Clockwise(document) },
+                    onBinarisationClick = { viewModel.binarise(document, it) },
+                    onFilterClick = { viewModel.filter(document, it) },
+                    onContrastClick = { viewModel.contrast(document, it) },
+                    onDenoisingClick = { viewModel.denoising(document, it) },
                 )
             },
             modifier = modifier

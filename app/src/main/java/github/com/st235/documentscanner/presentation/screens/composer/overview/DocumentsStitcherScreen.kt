@@ -7,14 +7,12 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -22,7 +20,6 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -30,10 +27,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ripple.rememberRipple
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardColors
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -52,23 +45,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import github.com.st235.documentscanner.R
 import github.com.st235.documentscanner.presentation.screens.Screen
-import github.com.st235.documentscanner.presentation.screens.composer.DocumentsComposerViewModel
 import github.com.st235.documentscanner.presentation.widgets.DocumentPreview
 import github.com.st235.documentscanner.presentation.widgets.LoadingView
 import github.com.st235.documentscanner.utils.createTempUri
@@ -76,26 +65,19 @@ import github.com.st235.documentscanner.utils.createTempUri
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DocumentCompositionOverviewScreen(
-    sharedViewModel: DocumentsComposerViewModel,
+    viewModel: DocumentsStitcherViewModel,
     navController: NavHostController,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
-    val state by sharedViewModel.documentsCompositionOverviewUiState.collectAsStateWithLifecycle()
-
-    if (state.isFinished) {
-        LaunchedEffect(true) {
-            navController.popBackStack()
-        }
-    }
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     var cameraPermissionUri by remember { mutableStateOf(Uri.EMPTY) }
 
     val cameraLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { isSuccessful ->
             if (isSuccessful) {
-                sharedViewModel.prepareUriForCropping(cameraPermissionUri)
-                navController.navigate(Screen.DocumentComposer.Cropper.route)
+                viewModel.addImageToComposition(cameraPermissionUri)
             }
         }
 
@@ -110,10 +92,20 @@ fun DocumentCompositionOverviewScreen(
     val galleryLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
             if (uri != null) {
-                sharedViewModel.prepareUriForCropping(uri)
-                navController.navigate(Screen.DocumentComposer.Cropper.route)
+                viewModel.addImageToComposition(uri)
             }
         }
+
+    val uriToCrop = state.preparedDocumentUri
+    if (uriToCrop != null) {
+        LaunchedEffect(true) {
+            navController.navigate(Screen.DocumentsFlow.Cropper.create(uriToCrop)) {
+                popUpTo(route = Screen.DocumentsFlow.route) {
+                    inclusive = false
+                }
+            }
+        }
+    }
 
     LoadingView(isLoading = state.isLoading) {
         Scaffold(
@@ -126,7 +118,7 @@ fun DocumentCompositionOverviewScreen(
                     ),
                     title = {
                         Text(
-                            stringResource(id = R.string.document_overview_screen_title),
+                            stringResource(id = R.string.documents_stitcher_screen_title),
                             fontWeight = FontWeight.Medium
                         )
                     },
@@ -145,29 +137,37 @@ fun DocumentCompositionOverviewScreen(
             },
             floatingActionButton = {
                 val shouldStitch = state.shouldStitch
+                val canProceedNext = state.pages.isNotEmpty()
 
                 val iconRes = if (shouldStitch) {
                     R.drawable.ic_healing_24
                 } else {
-                    R.drawable.ic_save_24
+                    R.drawable.ic_arrow_forward_24
                 }
 
                 val textRes = if (shouldStitch) {
-                    R.string.document_overview_stitch_and_save_button
+                    R.string.documents_stitcher_screen_stitch_button
                 } else {
-                    R.string.document_overview_save_button
+                    R.string.documents_stitcher_screen_proceed_button
                 }
 
-                ExtendedFloatingActionButton(
-                    icon = {
-                        Icon(
-                            painterResource(iconRes),
-                            contentDescription = null
-                        )
-                    },
-                    text = { Text(text = stringResource(textRes)) },
-                    onClick = { sharedViewModel.save() }
-                )
+                if (canProceedNext) {
+                    ExtendedFloatingActionButton(
+                        icon = {
+                            Icon(
+                                painterResource(iconRes),
+                                contentDescription = null
+                            )
+                        },
+                        text = {
+                            Text(
+                                text = stringResource(textRes),
+                                fontWeight = FontWeight.Medium
+                            )
+                        },
+                        onClick = { viewModel.save() }
+                    )
+                }
             }
         ) { paddings ->
             LazyVerticalGrid(
@@ -203,12 +203,10 @@ fun DocumentCompositionOverviewScreen(
                     DocumentPreview(
                         document = page.uri,
                         title = stringResource(
-                            id = R.string.document_overview_document_preview_template,
+                            id = R.string.documents_stitcher_screen_document_preview_template,
                             page.id
                         ),
-                        onClick = {
-                            navController.navigate(Screen.DocumentComposer.Editor.create(page.id))
-                        }
+                        onClick = { }
                     )
                 }
             }

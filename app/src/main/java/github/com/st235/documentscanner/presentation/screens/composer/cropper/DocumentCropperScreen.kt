@@ -1,5 +1,6 @@
 package github.com.st235.documentscanner.presentation.screens.composer.cropper
 
+import android.net.Uri
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.systemGestureExclusion
@@ -27,7 +28,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import github.com.st235.documentscanner.R
 import github.com.st235.documentscanner.presentation.base.theme.globalOverlayColor
-import github.com.st235.documentscanner.presentation.screens.composer.DocumentsComposerViewModel
+import github.com.st235.documentscanner.presentation.screens.Screen
 import github.com.st235.documentscanner.presentation.widgets.CropArea
 import github.com.st235.documentscanner.presentation.widgets.CropView
 import github.com.st235.documentscanner.presentation.widgets.LoadingView
@@ -36,16 +37,26 @@ import github.com.st235.documentscanner.utils.documents.DocumentScanner
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DocumentCropperScreen(
-    sharedViewModel: DocumentsComposerViewModel,
+    documentUri: Uri,
+    viewModel: DocumentCropperViewModel,
     modifier: Modifier = Modifier,
     navController: NavHostController,
 ) {
-    val state by sharedViewModel.documentCropperState.collectAsStateWithLifecycle()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
     var currentlySelectedCropArea by remember { mutableStateOf(CropArea.ALL) }
 
-    if (state.isFinished) {
-        LaunchedEffect(true) {
-            navController.popBackStack()
+    LaunchedEffect("loading_uri") {
+        viewModel.prepareUriForCropping(documentUri)
+    }
+
+    val uriToEdit = state.preparedUriForEditing
+    if (uriToEdit != null) {
+        LaunchedEffect("launching_uri_for_editing") {
+            navController.navigate(Screen.DocumentsFlow.Editor.create(uriToEdit)) {
+                popUpTo(route = Screen.DocumentsFlow.route) {
+                    inclusive = false
+                }
+            }
         }
     }
 
@@ -85,7 +96,7 @@ fun DocumentCropperScreen(
                         )
                     },
                     text = { Text(text = stringResource(R.string.document_cropper_crop_button)) },
-                    onClick = { sharedViewModel.cropAndSave(currentlySelectedCropArea.asCorners()) }
+                    onClick = { viewModel.cropAndSave(currentlySelectedCropArea.asCorners()) }
                 )
             },
             modifier = modifier

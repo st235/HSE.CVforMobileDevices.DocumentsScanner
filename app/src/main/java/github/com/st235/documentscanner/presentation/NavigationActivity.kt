@@ -1,5 +1,6 @@
 package github.com.st235.documentscanner.presentation
 
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -17,10 +18,12 @@ import androidx.navigation.navArgument
 import androidx.navigation.navigation
 import github.com.st235.documentscanner.presentation.base.theme.DocumentScannerTheme
 import github.com.st235.documentscanner.presentation.screens.Screen
-import github.com.st235.documentscanner.presentation.screens.composer.DocumentsComposerViewModel
+import github.com.st235.documentscanner.presentation.screens.composer.editor.DocumentsEditorViewModel
 import github.com.st235.documentscanner.presentation.screens.composer.overview.DocumentCompositionOverviewScreen
 import github.com.st235.documentscanner.presentation.screens.composer.cropper.DocumentCropperScreen
+import github.com.st235.documentscanner.presentation.screens.composer.cropper.DocumentCropperViewModel
 import github.com.st235.documentscanner.presentation.screens.composer.editor.DocumentEditor
+import github.com.st235.documentscanner.presentation.screens.composer.overview.DocumentsStitcherViewModel
 import github.com.st235.documentscanner.presentation.screens.feed.FeedScreen
 import github.com.st235.documentscanner.presentation.screens.feed.FeedScreenViewModel
 import org.koin.androidx.compose.koinViewModel
@@ -51,15 +54,14 @@ class NavigationActivity : ComponentActivity() {
         navController: NavHostController,
         modifier: Modifier = Modifier,
     ) {
-        val feedScreenViewModel = koinViewModel<FeedScreenViewModel>()
-        val documentsComposerViewModel = koinViewModel<DocumentsComposerViewModel>()
-
         NavHost(
             startDestination = startDestination,
             navController = navController,
             modifier = modifier
         ) {
             composable(Screen.DocumentsFeed.route) {
+                val feedScreenViewModel = koinViewModel<FeedScreenViewModel>()
+
                 FeedScreen(
                     viewModel = feedScreenViewModel,
                     navController = navController,
@@ -68,36 +70,52 @@ class NavigationActivity : ComponentActivity() {
             }
 
             navigation(
-                route = Screen.DocumentComposer.route,
-                startDestination = Screen.DocumentComposer.Overview.route) {
+                route = Screen.DocumentsFlow.route,
+                startDestination = Screen.DocumentsFlow.Stitcher.route) {
 
-                composable(Screen.DocumentComposer.Overview.route) {
+                composable(Screen.DocumentsFlow.Stitcher.route) {
+                    val stitcherViewModel = koinViewModel<DocumentsStitcherViewModel>()
+
                     DocumentCompositionOverviewScreen(
-                        sharedViewModel = documentsComposerViewModel,
-                        navController = navController,
-                        modifier = modifier
-                    )
-                }
-
-                composable(Screen.DocumentComposer.Cropper.route) {
-                    DocumentCropperScreen(
-                        sharedViewModel = documentsComposerViewModel,
+                        viewModel = stitcherViewModel,
                         navController = navController,
                         modifier = modifier
                     )
                 }
 
                 composable(
-                    route = Screen.DocumentComposer.Editor.route,
-                    arguments = listOf(navArgument(Screen.DocumentComposer.Editor.ID) {
-                        type = NavType.IntType
+                    route = Screen.DocumentsFlow.Cropper.route,
+                    arguments = listOf(navArgument(Screen.DocumentsFlow.Cropper.URI) {
+                        type = NavType.StringType
+                    })
+                ) { backStackEntry ->
+                    val encodedUri = backStackEntry.arguments?.getString(Screen.DocumentsFlow.Cropper.URI) ?: ""
+                    val uri = Uri.parse(encodedUri)
+
+                    val cropViewModel = koinViewModel<DocumentCropperViewModel>()
+
+                    DocumentCropperScreen(
+                        documentUri = uri,
+                        viewModel = cropViewModel,
+                        navController = navController,
+                        modifier = modifier
+                    )
+                }
+
+                composable(
+                    route = Screen.DocumentsFlow.Editor.route,
+                    arguments = listOf(navArgument(Screen.DocumentsFlow.Editor.URI) {
+                        type = NavType.StringType
                     })
                     ) { backStackEntry ->
-                    val documentId = backStackEntry.arguments?.getInt(Screen.DocumentComposer.Editor.ID) ?: 0
+                    val encodedUri = backStackEntry.arguments?.getString(Screen.DocumentsFlow.Cropper.URI) ?: ""
+                    val uri = Uri.parse(encodedUri)
+
+                    val documentsEditorViewModel = koinViewModel<DocumentsEditorViewModel>()
 
                     DocumentEditor(
-                        documentId = documentId,
-                        sharedViewModel = documentsComposerViewModel,
+                        documentUri = uri,
+                        viewModel = documentsEditorViewModel,
                         navController = navController,
                         modifier = modifier
                     )

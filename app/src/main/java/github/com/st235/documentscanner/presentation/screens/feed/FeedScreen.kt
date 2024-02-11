@@ -100,7 +100,7 @@ fun FeedScreen(
                     )
                 },
                 text = { Text(text = stringResource(R.string.feed_screen_start_flow)) },
-                onClick = { navController.navigate(Screen.DocumentComposer.route) }
+                onClick = { navController.navigate(Screen.DocumentsFlow.route) }
             )
         }
     ) { paddings ->
