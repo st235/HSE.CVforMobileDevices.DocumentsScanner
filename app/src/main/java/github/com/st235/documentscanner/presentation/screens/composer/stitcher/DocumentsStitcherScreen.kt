@@ -280,7 +280,7 @@ fun FilePickUpButton(
                 ),
         ) {
             Image(
-                painterResource(R.drawable.ic_perm_media_24),
+                painterResource(R.drawable.ic_add_photo_alternate_24),
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
                 contentDescription = null,
                 modifier = Modifier.size(32.dp)

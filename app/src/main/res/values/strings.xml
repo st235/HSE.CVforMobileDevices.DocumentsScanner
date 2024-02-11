@@ -2,7 +2,10 @@
     <string name="app_name">DocLens</string>
 
     <string name="feed_screen_title">Documents feed</string>
-    <string name="feed_screen_empty">Unfortunately, there are no saved documents. It is time to create a new one :-)</string>
+    <string name="feed_screen_empty_gallery_title">The Gallery Album folder is empty</string>
+    <string name="feed_screen_empty_gallery_description">Don\'t you worry, it is never late to start scanning documents.\nNew documents will be waiting here for you when you save them to gallery.</string>
+    <string name="feed_screen_no_permission_title">No permission to read the Gallery</string>
+    <string name="feed_screen_no_permission_description">It seems there is no permission to access your scanned documents album.\nThough the documents won\'t appear here, you can always find them in the photos app.</string>
     <string name="feed_screen_start_flow">Scan</string>
 
     <string name="preview_screen_title">Document Preview</string>
